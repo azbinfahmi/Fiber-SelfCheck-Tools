@@ -245,13 +245,11 @@ function runQC(event){
 
     // If there are non-equal values, store the information in the array
     if (nonEqualValues.length > 0) {
-      var vetroID = Fafter[afterIndex].vetro_id
       // Create an object with the information
       const infoObject = {
         afterIndex,
         beforeIndex,
         nonEqualValues,
-        vetroID
 
       };
 
@@ -259,12 +257,12 @@ function runQC(event){
       groupedInfoArray.push(infoObject);
     }
   });
+  console.log('groupedInfoArray', groupedInfoArray)
   //color the error fiber
   let currentIndex = 0;
   for (var i in groupedInfoArray){
     featureIndices.push(groupedInfoArray[i].beforeIndex)
   }
-
   if (geojsonLayer) {
     geojsonLayer.eachLayer(function (layer) {
       // Check if the current index is in the array of selected indices
@@ -419,10 +417,16 @@ function runQC(event){
   }
 
   //untuk highlight description yang error
+  //tukaq
+  var groupedInfoArray_copy = groupedInfoArray.slice();
+  groupedInfoArray_copy.sort(function(a, b) {
+    return a.beforeIndex - b.beforeIndex;
+  });
+
   for (var i =0; i<FiberError.length;i++){
     selectedPropertiesOrder = ['ID','Fiber Capacity', 'Placement', 'Zone', 'Service Group', 'Service Set', 'Service Area', 'Material Length', 'Slack Loop Footage', 'Install Method', 'Layer', 'Desc', 'Name','Total Length'];
     const selectedFeatureLayer = FiberError[i]
-    const nonEqualValues = groupedInfoArray[i].nonEqualValues
+    const nonEqualValues = groupedInfoArray_copy[i].nonEqualValues
     const featureProperties = selectedFeatureLayer.feature.properties;
 
     // Filter the selected properties based on the order
