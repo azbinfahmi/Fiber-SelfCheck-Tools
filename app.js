@@ -4,7 +4,7 @@ var featureIndices = [];
 var selectedFeature = null,isInFiberError=null; // Variable to keep track of the selected feature
 
 // Select only specific properties
-var selectedProperties = ['ID','Fiber Capacity', 'Placement', 'Zone', 'Service Group', 'Service Set', 'Service Area', 'Material Length', 'Slack Loop Footage', 'Install Method', 'Layer', 'Desc', 'Name','Total Length'];
+var selectedProperties = ['ID','Fiber Capacity', 'Placement', 'Zone', 'Service Group', 'Service Set', 'Service Area', 'Material Length', 'Slack Loop', 'Install Method', 'Layer', 'Description', 'Name','Total Length'];
 
 // Initialize the map
 var map = L.map('map', {
@@ -99,7 +99,7 @@ function handleSecondInput(event) {
     // Read the contents of the file
     reader.onload = function (e) {
       try {
-        const selectedProperties = ['ID','Fiber Capacity', 'Placement', 'Zone', 'Service Group', 'Service Set', 'Service Area', 'Material Length', 'Slack Loop Footage', 'Install Method', 'Layer', 'Desc', 'Name','Total Length','vetro_id'];
+        const selectedProperties = ['ID','Fiber Capacity', 'Placement', 'Zone', 'Service Group', 'Service Set', 'Service Area', 'Material Length', 'Slack Loop', 'Install Method', 'Layer', 'Description', 'Name','Total Length','vetro_id'];
         const geojsonData = JSON.parse(e.target.result);
 
         // Extract only the selected properties for the second input
@@ -131,10 +131,10 @@ function runQC(event){
   FiberError=[],featureIndices = []
   var selectedFiberName = document.getElementById('fiber-name').value
   if(selectedFiberName == "ID"){
-    selectedProperties = ['ID','Fiber Capacity', 'Placement', 'Zone', 'Service Group', 'Service Set', 'Service Area', 'Material Length', 'Slack Loop Footage', 'Install Method', 'Layer', 'Desc', 'Name'];
+    selectedProperties = ['ID','Fiber Capacity', 'Placement', 'Zone', 'Service Group', 'Service Set', 'Service Area', 'Material Length', 'Slack Loop', 'Install Method', 'Layer', 'Description', 'Name'];
   }
   else{
-    selectedProperties = ['Fiber Capacity', 'Placement', 'Zone', 'Service Group', 'Service Set', 'Service Area', 'Material Length', 'Slack Loop Footage', 'Install Method', 'Layer', 'Desc', 'Name'];
+    selectedProperties = ['Fiber Capacity', 'Placement', 'Zone', 'Service Group', 'Service Set', 'Service Area', 'Material Length', 'Slack Loop', 'Install Method', 'Layer', 'Description', 'Name'];
   }
 
   if(Fbefore.length != Fafter.length){
@@ -424,7 +424,7 @@ function runQC(event){
   });
 
   for (var i =0; i<FiberError.length;i++){
-    selectedPropertiesOrder = ['ID','Fiber Capacity', 'Placement', 'Zone', 'Service Group', 'Service Set', 'Service Area', 'Material Length', 'Slack Loop Footage', 'Install Method', 'Layer', 'Desc', 'Name','Total Length'];
+    selectedPropertiesOrder = ['ID','Fiber Capacity', 'Placement', 'Zone', 'Service Group', 'Service Set', 'Service Area', 'Material Length', 'Slack Loop', 'Install Method', 'Layer', 'Description', 'Name','Total Length'];
     const selectedFeatureLayer = FiberError[i]
     const nonEqualValues = groupedInfoArray_copy[i].nonEqualValues
     const featureProperties = selectedFeatureLayer.feature.properties;
