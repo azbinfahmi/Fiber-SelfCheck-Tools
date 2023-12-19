@@ -485,6 +485,40 @@ function runQC(event){
     index = index + 1
   });
 
+  //give ID,Name and Total of Fafter that are not match with Fbefore
+  if(Fafter.length > Fbefore.length){
+    const fafterIndicesInMatchingDistancesCopy = matchingDistances_copy.map(item => item.afterIndex);
+    const fafterLength = Fafter.length;
+    const missingAfterIndices = [];
+
+    for (let i = 0; i < fafterLength; i++) {
+      if (!fafterIndicesInMatchingDistancesCopy.includes(i)) {
+        missingAfterIndices.push(i);
+      }
+    }
+
+    for (i in missingAfterIndices){
+      console.log('Uknown Fafter: \n',Fafter[missingAfterIndices[i]])
+    }
+  }
+
+  else if (Fafter.length < Fbefore.length){
+    const fafterIndicesInMatchingDistancesCopy = matchingDistances_copy.map(item => item.beforeIndex);
+    const FbeforeLength = Fbefore.length;
+    const missingAfterIndices = [];
+
+    for (let i = 0; i < FbeforeLength; i++) {
+      if (!fafterIndicesInMatchingDistancesCopy.includes(i)) {
+        missingAfterIndices.push(i);
+      }
+    }
+
+    console.log('Missing afterIndices:', missingAfterIndices);
+
+    for (i in missingAfterIndices){
+      console.log('Uknown Fafter: \n',Fbefore[missingAfterIndices[i]])
+    }
+  }
 }
 
 function AddHH(event){
