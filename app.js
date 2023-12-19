@@ -138,14 +138,7 @@ function runQC(event){
   }
 
   if(Fbefore.length != Fafter.length){
-    if(Fbefore.length > Fafter.length){
-      total = Fbefore.length - Fafter.length
-      alert('Extra' + total + ' fiber')
-    }
-    else{
-      total = Fafter.length - Fbefore.length
-      alert('Less' + total + ' fiber')
-    }
+    alert('Error: Not Matching Total Fiber between Fiber(Before) and Fiber(After) \nTotal Fiber(Before): ' + Fbefore.length + ' \nTotal Fiber(After): ' + Fafter.length + '\n\n\n Please Recheck your Fiber(After)')
   }
   // Function to calculate distance between two points in WGS84
   function calculateDistance(point1, point2) {
@@ -180,7 +173,25 @@ function runQC(event){
   
     const closestPointToEnd = line2.reduce((closest, current) => {
       // Calculate the distance between the ending point of line1 and the current point in line2
-      const distance = calculateDistance(line1[line1.length - 1], current);
+      // find the end of the fiber length
+      for (var i=0; i < line1.length; i++){
+        if (i !=0){
+          dist = calculateDistance(line1[0],line1[i])
+          
+          if(i == 1){
+            longDist = dist
+            longestLengthIndex = i
+          }
+
+          if(dist > longDist){
+            longestLengthIndex = i
+          }
+
+        }
+        
+      }
+      //dalam variable current ada [lat,long]
+      const distance = calculateDistance(line1[longestLengthIndex], current);
       
       // Compare the calculated distance with the current closest distance
       return distance < closest.distance ? { point: current, distance } : closest;
@@ -194,43 +205,43 @@ function runQC(event){
   // Initialize a set to keep track of used before indices
   const usedBeforeIndices = new Set();
 
-  // Iterate through Fafter
-  Fafter.forEach((afterItem, afterIndex) => {
+  // Iterate through Fbefore
+  Fbefore.forEach((beforeItem, beforeIndex) => {
     let minDistance = Infinity;
-    let nearestBeforeIndex = -1;
+    let nearestAfterIndex = -1;
 
-    // Iterate through Fbefore
-    Fbefore.forEach((beforeItem, beforeIndex) => {
-      // Check if the before index is already used
-      if (!usedBeforeIndices.has(beforeIndex)) {
+    // Iterate through Fafter
+    Fafter.forEach((afterItem, afterIndex) => {
+      // Check if the after index is already used
+      if (!usedBeforeIndices.has(afterIndex)) {
         // Calculate the combined distance between the starting and ending coordinates of each line
-        const distance = calculateLineDistance(afterItem.coordinates, beforeItem.coordinates);
+        const distance = calculateLineDistance(beforeItem.coordinates, afterItem.coordinates);
 
         // Update the nearest line if the current distance is smaller
         if (distance < minDistance) {
           minDistance = distance;
-          nearestBeforeIndex = beforeIndex;
+          nearestAfterIndex = afterIndex;
         }
       }
     });
 
     // Check if a valid nearest index was found
-    if (nearestBeforeIndex !== -1 && minDistance<1) {
-      // Store the index from Fbefore, the distance, and the material length
+    if (nearestAfterIndex !== -1 && minDistance < 1) {
+      // Store the index from Fafter, the distance, and the material length
       matchingDistances.push({
-        afterIndex,
-        beforeIndex: nearestBeforeIndex,
+        beforeIndex,
+        afterIndex: nearestAfterIndex,
         distance: minDistance,
-        afterTotalLength: afterItem['Total Length'],
-        BeforeTotalLength: Fbefore[nearestBeforeIndex]['Total Length'],
-      
+        beforeTotalLength: beforeItem['Total Length'],
+        afterTotalLength: Fafter[nearestAfterIndex]['Total Length'],
       });
 
-      // Add the before index to the used set
-      usedBeforeIndices.add(nearestBeforeIndex);
+      // Add the after index to the used set
+      usedBeforeIndices.add(nearestAfterIndex);
     }
   });
-  console.log('Nearest lines in Fbefore:', matchingDistances);
+
+  console.log('Nearest lines in Fafter:', matchingDistances);
 
   const groupedInfoArray = [];
   // Iterate through matchingDistances
@@ -515,7 +526,6 @@ document.getElementById('run-QC').addEventListener('click', function(){
     runQC() 
   }
   else{
-    console.log('azim')
     alert("Missing Fiber Input")
   }
 });
