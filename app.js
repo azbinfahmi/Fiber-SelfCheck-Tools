@@ -1,5 +1,5 @@
 var Fbefore=[],Fafter=[],geojsonLayer=null,matchingDistances=[],FiberError=[]
-var CoordX,CoordY
+var CoordX,CoordY,FafterGeoJSON_Data
 var featureIndices = [];
 var selectedFeature = null,isInFiberError=null; // Variable to keep track of the selected feature
 
@@ -100,13 +100,16 @@ function handleSecondInput(event) {
     reader.onload = function (e) {
       try {
         const selectedProperties = ['ID','Fiber Capacity', 'Placement', 'Zone', 'Service Group', 'Service Set', 'Service Area', 'Material Length', 'Slack Loop','Slack Loop Footage', 'Install Method', 'Layer', 'Description', 'Desc' ,'Name','Total Length','vetro_id'];
-        const geojsonData = JSON.parse(e.target.result);
+        const GeoJSON_Data = JSON.parse(e.target.result);
+        FafterGeoJSON_Data = GeoJSON_Data
 
         // Extract only the selected properties for the second input
-        Fafter = geojsonData.features.map(feature => {
+        Fafter = GeoJSON_Data.features.map(feature => {
           const selectedObject = {};
           selectedProperties.forEach(property => {
-            selectedObject[property] = feature.properties[property];
+            if (feature.properties[property] !== undefined){
+              selectedObject[property] = feature.properties[property];
+            }
           });
 
           // Include coordinates
@@ -485,21 +488,62 @@ function runQC(event){
     index = index + 1
   });
 
-  //give ID,Name and Total of Fafter that are not match with Fbefore
+  //give ID,Name and Total of Fafter that are not match with Fbefore n then display on the map
   if(Fafter.length > Fbefore.length){
     const fafterIndicesInMatchingDistancesCopy = matchingDistances_copy.map(item => item.afterIndex);
     const fafterLength = Fafter.length;
     const missingAfterIndices = [];
-
     for (let i = 0; i < fafterLength; i++) {
       if (!fafterIndicesInMatchingDistancesCopy.includes(i)) {
         missingAfterIndices.push(i);
       }
     }
 
+    WrongFiber = []
     for (i in missingAfterIndices){
-      console.log('Uknown Fafter: \n',Fafter[missingAfterIndices[i]])
+      WrongFiber.push(FafterGeoJSON_Data.features[missingAfterIndices[i]])
     }
+
+    // Display the wrong fiber in maps
+    var selectedProperties = ['Fiber Capacity', 'Placement', 'Zone', 'Service Group', 'Service Set', 'Service Area', 'Material Length', 'Slack Loop', 'Slack Loop Footage', 'Install Method', 'Layer', 'Description', 'Desc', 'Name', 'Total Length'];
+    L.geoJSON(WrongFiber, {
+      style: function (feature) {
+          return {
+              color: 'purple',
+              fillColor: 'purple',
+              weight: 5
+          };
+      },
+      onEachFeature: function (feature, layer) {
+          // Create a popup content string with selected properties
+          var popupContent = "";
+          selectedProperties.forEach(function (property) {
+              if (feature.properties[property] !== undefined) {
+                  popupContent += "<b>" + property + ":</b> " + feature.properties[property] + "<br>";
+              }
+          });
+
+          // Bind the popup to the layer
+          layer.bindPopup(popupContent);
+          layer.on({
+              mouseover: function (e) {
+                  layer.setStyle({
+                      color: 'black',  
+                      fillColor: 'black',
+                      opacity: '0.7'
+                  });
+              },
+              mouseout: function (e) {
+                  layer.setStyle({
+                      color: 'purple',
+                      fillColor: 'purple'
+                  });
+              }
+          });
+      }
+    }).addTo(map);
+
+    console.log('Fiber Terlebih', WrongFiber);
   }
 
   else if (Fafter.length < Fbefore.length){
@@ -516,7 +560,7 @@ function runQC(event){
     console.log('Missing afterIndices:', missingAfterIndices);
 
     for (i in missingAfterIndices){
-      console.log('Uknown Fafter: \n',Fbefore[missingAfterIndices[i]])
+      console.log('Missing Fbefore: \n',Fbefore[missingAfterIndices[i]])
     }
   }
 }
@@ -551,6 +595,7 @@ function AddHH(event){
       reader.readAsText(file);
   }
 }
+
 // Attach event listeners to the input elements
 document.getElementById('handhole').addEventListener('change', AddHH)
 document.getElementById('f-before').addEventListener('change', handleFirstInput);
@@ -563,4 +608,3 @@ document.getElementById('run-QC').addEventListener('click', function(){
     alert("Missing Fiber Input")
   }
 });
-
