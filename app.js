@@ -1,5 +1,5 @@
 var Fbefore=[],Fafter=[],geojsonLayer=null,matchingDistances=[],FiberError=[]
-var CoordX,CoordY,FafterGeoJSON_Data
+var CoordX,CoordY,FafterGeoJSON_Data, FbeforeGeoJSON_Data
 var featureIndices = [];
 var selectedFeature = null,isInFiberError=null; // Variable to keep track of the selected feature
 
@@ -37,7 +37,7 @@ function handleFirstInput(event) {
       reader.onload = function (e) {
         try {
           const geojsonData = JSON.parse(e.target.result);
-
+          FbeforeGeoJSON_Data = geojsonData
           // Extract only the selected properties for the second input
           Fbefore = geojsonData.features.map(feature => {
             const selectedObject = {};
@@ -54,9 +54,20 @@ function handleFirstInput(event) {
           // Add GeoJSON layer to the map
           geojsonLayer = L.geoJSON(geojsonData, {
             onEachFeature: function (feature, layer) {
-  
               // Build popup content based on selected properties
-              const popupContent = selectedProperties.map(key => `<b>${key}:</b> ${feature.properties[key]}`).join("<br>");
+              const popupContent = selectedProperties.map(key => {
+                const propertyValue = feature.properties[key];
+            
+                // Check if propertyValue is null or undefined
+                if (propertyValue === undefined) {
+                    return null
+                } else {
+                    return `<b>${key}:</b> ${propertyValue}`;
+                }
+              }).filter(value => value !== null) // Filter out null values
+              .join("<br>");
+             
+           
               layer.bindPopup(popupContent, {
                 maxHeight: 200,
                 maxWidth: 300,
@@ -203,24 +214,18 @@ function runQC(event){
   return closestPointToStart + closestPointToEnd
   }
 
-  // Initialize an array to store the matching indices and their distances
   matchingDistances = [];
   // Initialize a set to keep track of used before indices
   const usedBeforeIndices = new Set();
 
-  // Iterate through Fbefore
   Fbefore.forEach((beforeItem, beforeIndex) => {
     let minDistance = Infinity;
     let nearestAfterIndex = -1;
-
-    // Iterate through Fafter
     Fafter.forEach((afterItem, afterIndex) => {
       // Check if the after index is already used
       if (!usedBeforeIndices.has(afterIndex)) {
-        // Calculate the combined distance between the starting and ending coordinates of each line
         const distance = calculateLineDistance(beforeItem.coordinates, afterItem.coordinates);
 
-        // Update the nearest line if the current distance is smaller
         if (distance < minDistance) {
           minDistance = distance;
           nearestAfterIndex = afterIndex;
@@ -228,15 +233,16 @@ function runQC(event){
       }
     });
 
-    // Check if a valid nearest index was found
-    if (nearestAfterIndex !== -1 && minDistance < 1) {
-      // Store the index from Fafter, the distance, and the material length
+    if (nearestAfterIndex !== -1 && minDistance < 10) {
       matchingDistances.push({
         beforeIndex,
         afterIndex: nearestAfterIndex,
         distance: minDistance,
         beforeTotalLength: beforeItem['Total Length'],
         afterTotalLength: Fafter[nearestAfterIndex]['Total Length'],
+        beforeMaterialL: beforeItem['Material Length'],
+        afterMaterialL: Fafter[nearestAfterIndex]['Material Length']
+
       });
 
       // Add the after index to the used set
@@ -244,10 +250,9 @@ function runQC(event){
     }
   });
 
-  console.log('Nearest lines in Fafter:', matchingDistances);
+  console.log('matchingDistances in Fbefore:', matchingDistances);
 
   const groupedInfoArray = [];
-  // Iterate through matchingDistances
   matchingDistances.forEach(({ afterIndex, beforeIndex}) => {
     // Check if any of the selected properties are not equal
     const nonEqualValues = selectedProperties.filter(property => {
@@ -259,7 +264,6 @@ function runQC(event){
 
     // If there are non-equal values, store the information in the array
     if (nonEqualValues.length > 0) {
-      // Create an object with the information
       const infoObject = {
         afterIndex,
         beforeIndex,
@@ -272,11 +276,13 @@ function runQC(event){
     }
   });
   console.log('groupedInfoArray', groupedInfoArray)
+
   //color the error fiber
   let currentIndex = 0;
   for (var i in groupedInfoArray){
     featureIndices.push(groupedInfoArray[i].beforeIndex)
   }
+
   if (geojsonLayer) {
     geojsonLayer.eachLayer(function (layer) {
       // Check if the current index is in the array of selected indices
@@ -431,7 +437,6 @@ function runQC(event){
   }
 
   //untuk highlight description yang error
-  //tukaq
   var groupedInfoArray_copy = groupedInfoArray.slice();
   groupedInfoArray_copy.sort(function(a, b) {
     return a.beforeIndex - b.beforeIndex;
@@ -447,14 +452,19 @@ function runQC(event){
     const filteredProperties = selectedPropertiesOrder
     .map(key => {
       const value = featureProperties[key];
-      const isHighlighted = nonEqualValues.includes(key);
-      const highlightedValue = isHighlighted ? `<span style="color: red;">${value}</span>` : value;
-      const highlightedKey = isHighlighted ? `<span style="color: red;">${key}</span>` : key;
-      return `<b>${highlightedKey}</b>: ${highlightedValue}`;
+      if(value === undefined){
+        return null
+      }
+      else{
+        const isHighlighted = nonEqualValues.includes(key);
+        const highlightedValue = isHighlighted ? `<span style="color: red;">${value}</span>` : value;
+        const highlightedKey = isHighlighted ? `<span style="color: red;">${key}</span>` : key;
+        return `<b>${highlightedKey}</b>: ${highlightedValue}`;
+      }
     });
 
     // Construct the HTML content for the popup
-    const modifiedPopupContent = filteredProperties.join('<br>');
+    const modifiedPopupContent = filteredProperties.filter(value => value !== null).join('<br>');
 
     // Update the content of the popup
     selectedFeatureLayer.bindPopup(modifiedPopupContent);
@@ -468,7 +478,6 @@ function runQC(event){
   matchingDistances_copy.sort(function(a, b) {
     return a.beforeIndex - b.beforeIndex;
   });
-
   geojsonLayer.eachLayer(function(layer) {
     const beforeIndex = matchingDistances_copy[index].afterIndex
     VetroID = Fafter[beforeIndex].vetro_id
@@ -563,6 +572,24 @@ function runQC(event){
       console.log('Missing Fbefore: \n',Fbefore[missingAfterIndices[i]])
     }
   }
+
+  else if (Fafter.length == Fbefore.length){
+    for (let i = 0; i< FbeforeGeoJSON_Data.features.length; i++ ){
+      //Fbefore_index = matchingDistances[i].beforeIndex
+      //Fafter_index = matchingDistances[i].afterIndex
+      //FbeforeProperties = FbeforeGeoJSON_Data.features[Fbefore_index].properties
+      //current_VetroID = FafterGeoJSON_Data.features[Fafter_index].properties.vetro_id
+//
+      ////change properties in geojson fbefore
+      //FafterGeoJSON_Data.features[Fafter_index].properties = FbeforeProperties
+      //FafterGeoJSON_Data.features[Fafter_index].properties.vetro_id = current_VetroID
+    }//
+
+    //change coordinate from Fiber After and change it into fiber Before
+    //console.log('FbeforeGeoJSON_Data',FbeforeGeoJSON_Data)
+    //console.log('FafterGeoJSON_Data',FafterGeoJSON_Data)
+  }
+  
 }
 
 function AddHH(event){
