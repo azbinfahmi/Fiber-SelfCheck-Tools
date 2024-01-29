@@ -117,6 +117,12 @@ function handleZipFile_after() {
           console.log('HH_After',HH_After)
           checkError = CompareSplicing()
           HighlightWrongHH(checkError)
+          if(checkError == {}){
+            alert('No Error')
+          }
+          else{
+            alert('Green : Equipment Error\nRed : Splicing Error\nYellow : Both Equipment and Splicing error')
+          }
         })
         .catch(function (error) {
           console.error('Error reading zip file:', error);
