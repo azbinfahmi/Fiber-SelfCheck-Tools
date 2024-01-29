@@ -7,6 +7,8 @@
   <title>Fiber SelfCheck Tool</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
 </head>
 <body>  
     <table id="fiberTable">
@@ -23,7 +25,7 @@
                 <button id="run-QC">Run QC</button>
             </td>
 
-            <td rowspan="2">
+            <td rowspan="3">
                 <img id="toggleTableBtn-Left" src="img/left.png" alt="Toggle Table">
             </td>
         </tr>
@@ -40,9 +42,18 @@
                     <option value="ID">ID</option>
                     <option value="Null" >none</option>
                 </select>
-            </td>
+            </td>            
+        </tr>
 
-            
+        <tr>
+            <td>
+                <label for="zipFileInput">Splicing Before:</label><br>
+                <input type="file" id="zipFileInput_before" accept=".zip" onchange="handleZipFile_before()">
+            </td>
+            <td>
+                <label for="zipFileInput">Splicing After:</label><br>
+                <input type="file" id="zipFileInput_after" accept=".zip" onchange="handleZipFile_after()">
+            </td>
         </tr>
     </table>
 
@@ -61,6 +72,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/7.0.0-alpha.0/turf.min.js"></script>
     <script src="button.js"></script>
     <script src="app.js"></script>
+    <script src="Splicing.js"></script>
     
 </body>
 </html>
