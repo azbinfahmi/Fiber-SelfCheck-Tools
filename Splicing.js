@@ -117,10 +117,17 @@ function handleZipFile_after() {
           console.log('HH_After',HH_After)
           checkError = CompareSplicing()
           HighlightWrongHH(checkError)
-          if(checkError == {}){
+          let NumOfError = 0
+          for(let info in checkError){
+            let error = checkError[info].length
+            NumOfError += error
+          }
+
+          if(NumOfError == 0){
             alert('No Error')
           }
           else{
+            alert(`${NumOfError} Error`)
             alert('Green : Equipment Error\nRed : Splicing Error\nYellow : Both Equipment and Splicing error')
           }
         })
