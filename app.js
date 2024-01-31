@@ -27,7 +27,6 @@ map.on('mousemove', function (e) {
   coordinatesDiv.innerHTML = '<small>Latitude: ' + e.latlng.lat.toFixed(6) + ' | Longitude: ' + e.latlng.lng.toFixed(6) + '</small>';
 });
 
-
 // read and display first input
 function handleFirstInput(event) {
     const file = event.target.files[0];  
@@ -44,26 +43,34 @@ function handleFirstInput(event) {
             selectedProperties.forEach(property => {
               selectedObject[property] = feature.properties[property];
           });
-
             // Include coordinates
             selectedObject.coordinates = feature.geometry.coordinates;
-
             return selectedObject
           });
 
           // Add GeoJSON layer to the map
           geojsonLayer = L.geoJSON(geojsonData, {
             onEachFeature: function (feature, layer) {
-  
               // Build popup content based on selected properties
-              const popupContent = selectedProperties.map(key => `<b>${key}:</b> ${feature.properties[key]}`).join("<br>");
+              const popupContent = selectedProperties.map(key => {
+                const propertyValue = feature.properties[key];
+            
+                // Check if propertyValue is null or undefined
+                if (propertyValue === undefined) {
+                    return null
+                } else {
+                    return `<b>${key}:</b> ${propertyValue}`;
+                }
+              }).filter(value => value !== null) // Filter out null values
+              .join("<br>");
+             
+           
               layer.bindPopup(popupContent, {
                 maxHeight: 200,
                 maxWidth: 300,
                 scrollWheelZoom: true
               });
             },
-
             
             style: function (feature) {
               // Default style for the features
