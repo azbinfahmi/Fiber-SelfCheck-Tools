@@ -783,7 +783,6 @@ function CompareSplicing(){
       }
 
       else{
-        boolError = false
         if(HH_After[HH]["Equipment"][keys] == undefined){
           temp_checkError.push(HH,'Wrong cable input')
         }
@@ -809,7 +808,6 @@ function CompareSplicing(){
                   }
                 }
               }
-              
             }
           }
         }
@@ -839,9 +837,17 @@ function CompareSplicing(){
           let len_before = HH_Before[HH]["SpliceInfo"][keys].length
 
           for(let i = 0; i < len_before; i++ ){
-            let value_before = HH_Before[HH]["SpliceInfo"][keys][i]
-            let value_after = HH_After[HH]["SpliceInfo"][keys][i]
-
+            let value_before
+            let value_after
+            try{
+              value_before = HH_Before[HH]["SpliceInfo"][keys][i]
+              value_after = HH_After[HH]["SpliceInfo"][keys][i]
+            }
+            catch(error){
+              value_after = undefined
+            }
+            
+            
             if(value_after == undefined || value_before.length != value_after.length){
               temp_checkError.push(HH, 'Wrong Splicing1')
             }
