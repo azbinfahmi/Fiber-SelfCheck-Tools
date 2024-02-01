@@ -269,6 +269,22 @@ function StoreSplicingInfo(){
     
     return result
   }
+
+  //find which column based on name and row given
+  function readWhichColumn(startColumn,lastColumn, value, row, sheet){
+    let startCode = startColumn.charCodeAt(0)
+    let endCode = lastColumn.charCodeAt(0)
+
+    for (let code = startCode; code <= endCode; code++) {
+      let currentLetter = String.fromCharCode(code);
+      let currentValue = sheet[`${currentLetter}${row}`].v
+
+      if(currentValue == value){
+        return currentLetter
+      }
+    }
+
+  }
   
   let cableInfo ={}
   for (let key in workbook_arr) {
@@ -335,13 +351,18 @@ function StoreSplicingInfo(){
               const cellColumn = cellref.match(/([A-Z]+)(\d+)/)[1]
               const cellRow = cellref.match(/([A-Z]+)(\d+)/)[2]
               const cellValue = sheet[cellref].v
+              let lettersArray = sheet['!ref'].match(/[A-Za-z]+/g);
+              let lastColumn = lettersArray[lettersArray.length - 1][0];
+              
               if (cellValue === 'Fiber #'){
-                const colFiber = 'B' //Fiber # symbol
-                const colEquipment = 'E'
-                const colPort = 'F'
-                const colCable = 'G'
-                const colF = 'H' //# symbol
-                const colNotes = 'K'
+                const colFiber = cellColumn //Fiber # symbol
+                const colEquipment = readWhichColumn(cellColumn,lastColumn,'Equipment', cellRow, sheet) //Equipment
+                const colPort = readWhichColumn(cellColumn,lastColumn,'Port', cellRow, sheet) // Port
+                const colCable = readWhichColumn(cellColumn,lastColumn,'Cable', cellRow, sheet) //cable
+                const colF = readWhichColumn(cellColumn,lastColumn,'#', cellRow, sheet) //# symbol
+                const colNotes = readWhichColumn(cellColumn,lastColumn,'Notes', cellRow, sheet)
+
+                
                 //pick fiber info from splicing row
                 for(let rowIndex = Number(cellRow) + 1; rowIndex <= maxrow; rowIndex++){
                   let tempSpliceInfo=[]
@@ -398,16 +419,20 @@ function StoreSplicingInfo(){
           //Equipment Connections.
           for(var cellref in sheet){
             if(cellref.match(/([A-Z]+)(\d+)/) != null){
+              const cellColumn = cellref.match(/([A-Z]+)(\d+)/)[1]
               const cellRow = cellref.match(/([A-Z]+)(\d+)/)[2]
               const cellValue = sheet[cellref].v
+              let lettersArray = sheet['!ref'].match(/[A-Za-z]+/g);
+              let lastColumn = lettersArray[lettersArray.length - 1][0];
+              
               if (cellValue === 'Input'){
-                
-                const colInput =  'B' //Input
-                const colFIn = 'C' //# symbol
-                const colEq= 'F' //equipment name
-                const colPort = 'G' // port
-                const colF = 'H' //# symbol
-                const colFOut = 'K' // fiber out
+                const colInput =  cellColumn //Input
+                const colFIn = readWhichColumn(cellColumn,lastColumn,'#', cellRow, sheet) //#
+                const colEq= readWhichColumn(cellColumn,lastColumn,'Equipment', cellRow, sheet) //Equipment
+                const colPort = readWhichColumn(cellColumn,lastColumn,'Port', cellRow, sheet) // port
+                const colF = readWhichColumn(colPort,lastColumn,'#', cellRow, sheet) //# (located after Port) Output
+                const colFOut = readWhichColumn(colPort,lastColumn,'Output', cellRow, sheet) //Output
+
                 for(let rowIndex = Number(cellRow) + 1; rowIndex <= maxrow; rowIndex++){
                   Eqconnect =[]
                   try{
