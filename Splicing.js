@@ -286,6 +286,14 @@ function StoreSplicingInfo(){
 
   }
   
+  //use in Info keys untuk ambik fiber tu ke HH mana
+  function extractValueBetweenToAndComma(input) {
+    const startIndex = input.indexOf('to') + 3; // Adding 3 to skip 'to' and the following space
+    const endIndex = input.indexOf(',', startIndex);
+    const result = input.substring(startIndex, endIndex).trim();
+    return result;
+  }
+
   let cableInfo ={}
   for (let key in workbook_arr) {
     let coord =[]
@@ -308,9 +316,9 @@ function StoreSplicingInfo(){
               const cellValue = sheet[cellref].v
               if (cellColumn == "A" && cellValue === 'Cable'){
                 for(let rowIndex = Number(cellRow) + 1; rowIndex <= (Number(cellRow) + totalCable); rowIndex++){
-                  //Column A,C,E,F
+                  //Column A,C,E,F A for A = cable, C = ID, E = Count, F = Direction to
                   tempCable.push({
-                    [sheet[`A${rowIndex}`].v] : [sheet[`C${rowIndex}`].v, sheet[`E${rowIndex}`].v, sheet[`F${rowIndex}`].v]
+                    [sheet[`A${rowIndex}`].v] : [sheet[`C${rowIndex}`].v, sheet[`E${rowIndex}`].v, sheet[`F${rowIndex}`].v, extractValueBetweenToAndComma(sheet[`F${rowIndex}`].v)]
                   })
                 }
               }
@@ -362,7 +370,10 @@ function StoreSplicingInfo(){
                 const colF = readWhichColumn(cellColumn,lastColumn,'#', cellRow, sheet) //# symbol
                 const colNotes = readWhichColumn(cellColumn,lastColumn,'Notes', cellRow, sheet)
 
-                
+                let startCode = cellColumn.charCodeAt(0) - 1
+                let currentLetter = String.fromCharCode(startCode);
+                let currentcableName = sheet[`${currentLetter}${Number(cellRow)-1}`].v.split(" ")[1]
+                //console.log("currentcableName", currentcableName)
                 //pick fiber info from splicing row
                 for(let rowIndex = Number(cellRow) + 1; rowIndex <= maxrow; rowIndex++){
                   let tempSpliceInfo=[]
