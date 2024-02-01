@@ -15,7 +15,7 @@ var map = L.map('map', {
 // Add a base map layer (you can choose a different tile layer)
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© Develop by AzbinFahmi',
-maxZoom: 19,
+maxZoom: 99,
 }).addTo(map);
 
 //add coordinates ino viewer
@@ -457,9 +457,13 @@ function runQC(event){
       const isHighlighted = nonEqualValues.includes(key);
       const highlightedValue = isHighlighted ? `<span style="color: red;">${value}</span>` : value;
       const highlightedKey = isHighlighted ? `<span style="color: red;">${key}</span>` : key;
-      return `<b>${highlightedKey}</b>: ${highlightedValue}`;
-    });
-
+      if (value !== undefined) {
+        return `<b>${highlightedKey}</b>: ${highlightedValue}`;
+      } else {
+        return null;
+      }
+    }).filter(entry => entry !== null);
+    
     // Construct the HTML content for the popup
     const modifiedPopupContent = filteredProperties.join('<br>');
 
