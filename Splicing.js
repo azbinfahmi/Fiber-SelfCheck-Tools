@@ -510,7 +510,6 @@ function StoreSplicingInfo(){
           if(!uniqueFiberIn.includes(fiberIn)){
             if(fiberIn != 0){
               uniqueFiberIn.push(fiberIn)
-
             }
           }
         }
@@ -535,18 +534,12 @@ function StoreSplicingInfo(){
                   arr_.push(organizedEq[fiberName][j].slice(1))
                 }
               }
-              //if(arr_.length == 1){
-              //  flatArr = arr_.flat()
-              //  //arr_fiberIn[uniqueFiberIn[k]] = flatArr[0]
-              //}
-              //else{
-              //  arr_fiberIn[uniqueFiberIn[k]] = arr_
-              //}
               arr_fiberIn[uniqueFiberIn[k]] = arr_
             }
           }
-          organizedEq[uniqueName[i]] = arr_fiberIn
-
+          if(arr_.length == 0){
+          }
+          
           if(!cableInfo[HH][infos][uniqueName[i]]){
             cableInfo[HH][infos] = organizedEq
           }
@@ -667,6 +660,8 @@ function AddHHintoMap(){
       eq_desc += '<strong> Cable In:' + fibername + '</strong><br>'
       for(let fiberIn in HH_Before[name]['Equipment'][fibername]){
         let arr = HH_Before[name]['Equipment'][fibername][fiberIn]
+
+        console.log('nameHH', name ,'\narr',arr)
         if(arr[0].length > 1){
           //eq_desc += `Primary Splitter <br> Fiber In: ${fiberIn} <br>`
           eq_desc += `<table border="1" style = "position: relative;"><thead>
