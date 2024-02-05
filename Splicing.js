@@ -117,19 +117,19 @@ function handleZipFile_after() {
           console.log('HH_After',HH_After)
           checkError = CompareSplicing()
           HighlightWrongHH(checkError)
-          let NumOfError = 0
-          for(let info in checkError){
-            let error = checkError[info].length
-            NumOfError += error
-          }
+          // let NumOfError = 0
+          // for(let info in checkError){
+          //   let error = checkError[info].length
+          //   NumOfError += error
+          // }
 
-          if(NumOfError == 0){
-            alert('No Error')
-          }
-          else{
-            alert(`${NumOfError} Error`)
-            alert('Green : Equipment Error\nRed : Splicing Error\nYellow : Both Equipment and Splicing error')
-          }
+          // if(NumOfError == 0){
+          //   alert('No Error')
+          // }
+          // else{
+          //   alert(`${NumOfError} Error`)
+          //   alert('Green : Equipment Error\nRed : Splicing Error\nYellow : Both Equipment and Splicing error')
+          // }
         })
         .catch(function (error) {
           console.error('Error reading zip file:', error);
@@ -939,7 +939,13 @@ function HighlightWrongHH(checkError){
     }
   }
 
+  //color based on HH punya salah
+  let wrongHH = []
   for(let i = 0; i < HHeq.length; i++){
+    if(!wrongHH.includes(HHeq[i])){
+      wrongHH.push(HHeq[i])
+    }
+
     let index = 0
     HH_coordinate.forEach(feature =>{
       let HHname = feature[0]
@@ -955,6 +961,10 @@ function HighlightWrongHH(checkError){
   }
 
   for(let i = 0; i < HHsplicing.length; i++){
+    if(!wrongHH.includes(HHsplicing[i])){
+      wrongHH.push(HHsplicing[i])
+    }
+
     let index = 0
     HH_coordinate.forEach(feature =>{
       let HHname = feature[0]
@@ -987,6 +997,15 @@ function HighlightWrongHH(checkError){
     }
     
     index += 1
-  }  
+  }
+
+  console.log('wrongHH: ',wrongHH)
+  if(wrongHH.length == 0){
+    alert('No Error')
+  }
+  else{
+    alert(`${wrongHH.length} Error HH`)
+    alert('Green : Equipment Error\nRed : Splicing Error\nYellow : Both Equipment and Splicing error')
+  }
 }
 
