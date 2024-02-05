@@ -1,5 +1,5 @@
 var Fbefore=[],Fafter=[],geojsonLayer=null,matchingDistances=[],FiberError=[]
-var CoordX,CoordY,FafterGeoJSON_Data
+var CoordX,CoordY,FafterGeoJSON_Data, FbeforeGeoJSON_Data
 var featureIndices = [];
 var selectedFeature = null,isInFiberError=null; // Variable to keep track of the selected feature
 
@@ -36,7 +36,7 @@ function handleFirstInput(event) {
       reader.onload = function (e) {
         try {
           const geojsonData = JSON.parse(e.target.result);
-
+          FbeforeGeoJSON_Data = geojsonData
           // Extract only the selected properties for the second input
           Fbefore = geojsonData.features.map(feature => {
             const selectedObject = {};
@@ -438,7 +438,6 @@ function runQC(event){
   }
 
   //untuk highlight description yang error
-  //tukaq
   var groupedInfoArray_copy = groupedInfoArray.slice();
   groupedInfoArray_copy.sort(function(a, b) {
     return a.beforeIndex - b.beforeIndex;
@@ -481,22 +480,32 @@ function runQC(event){
   });
 
   geojsonLayer.eachLayer(function(layer) {
-    const beforeIndex = matchingDistances_copy[index].afterIndex
-    VetroID = Fafter[beforeIndex].vetro_id
-    const Coord = Fafter[beforeIndex].coordinates[0]
-    // Access the existing popup content
-    var popupContent = layer.getPopup().getContent();
+    let beforeIndex
+    try{
+      beforeIndex = matchingDistances_copy[index].afterIndex
+    }
+    catch(error){
+      beforeIndex = null
+    }
+    
+    if(beforeIndex != null){
+      VetroID = Fafter[beforeIndex].vetro_id
+      const Coord = Fafter[beforeIndex].coordinates[0]
+      // Access the existing popup content
+      var popupContent = layer.getPopup().getContent();
 
-    // Add a new value, for example, a link
-    link = "https://fibermap.vetro.io/map?selectedFeature="+ VetroID + "#18.52/"+ Coord[1] + "/" + Coord[0]
-    var newValue = "<a href='" + link + "' target='_blank'>Go To Vetro</a>";
+      // Add a new value, for example, a link
+      link = "https://fibermap.vetro.io/map?selectedFeature="+ VetroID + "#18.52/"+ Coord[1] + "/" + Coord[0]
+      var newValue = "<a href='" + link + "' target='_blank'>Go To Vetro</a>";
 
-    // Concatenate the new value to the existing popup content
-    var updatedPopupContent = newValue + "<br>" + popupContent;
+      // Concatenate the new value to the existing popup content
+      var updatedPopupContent = newValue + "<br>" + popupContent;
 
-    // Update the popup content
-    layer.bindPopup(updatedPopupContent);
-    index = index + 1
+      // Update the popup content
+      layer.bindPopup(updatedPopupContent);
+      index = index + 1
+    }
+    
   });
 
   //give ID,Name and Total of Fafter that are not match with Fbefore n then display on the map
@@ -514,7 +523,6 @@ function runQC(event){
     for (i in missingAfterIndices){
       WrongFiber.push(FafterGeoJSON_Data.features[missingAfterIndices[i]])
     }
-
     // Display the wrong fiber in maps
     var selectedProperties = ['Fiber Capacity', 'Placement', 'Zone', 'Service Group', 'Service Set', 'Service Area', 'Material Length', 'Slack Loop', 'Slack Loop Footage', 'Install Method', 'Layer', 'Description', 'Desc', 'Name', 'Total Length'];
     L.geoJSON(WrongFiber, {
@@ -568,11 +576,47 @@ function runQC(event){
       }
     }
 
-    console.log('Missing afterIndices:', missingAfterIndices);
-
+    let WrongFiber = []
     for (i in missingAfterIndices){
-      console.log('Missing Fbefore: \n',Fbefore[missingAfterIndices[i]])
+      WrongFiber.push(FbeforeGeoJSON_Data.features[missingAfterIndices[i]]) 
     }
+    
+    L.geoJSON(WrongFiber, {
+      style: function (feature) {
+          return {
+              color: 'purple',
+              fillColor: 'purple',
+              weight: 5
+          };
+      },
+      onEachFeature: function (feature, layer) {
+          // Create a popup content string with selected properties
+          var popupContent = "";
+          selectedProperties.forEach(function (property) {
+              if (feature.properties[property] !== undefined) {
+                  popupContent += "<b>" + property + ":</b> " + feature.properties[property] + "<br>";
+              }
+          });
+
+          // Bind the popup to the layer
+          layer.bindPopup(popupContent);
+          layer.on({
+              mouseover: function (e) {
+                  layer.setStyle({
+                      color: 'black',  
+                      fillColor: 'black',
+                      opacity: '0.7'
+                  });
+              },
+              mouseout: function (e) {
+                  layer.setStyle({
+                      color: 'purple',
+                      fillColor: 'purple'
+                  });
+              }
+          });
+      }
+    }).addTo(map);
   }
 }
 
