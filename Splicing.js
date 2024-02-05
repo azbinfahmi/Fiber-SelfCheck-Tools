@@ -660,8 +660,7 @@ function AddHHintoMap(){
       eq_desc += '<strong> Cable In:' + fibername + '</strong><br>'
       for(let fiberIn in HH_Before[name]['Equipment'][fibername]){
         let arr = HH_Before[name]['Equipment'][fibername][fiberIn]
-
-        console.log('nameHH', name ,'\narr',arr)
+        
         if(arr[0].length > 1){
           //eq_desc += `Primary Splitter <br> Fiber In: ${fiberIn} <br>`
           eq_desc += `<table border="1" style = "position: relative;"><thead>
