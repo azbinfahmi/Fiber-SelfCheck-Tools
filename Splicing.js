@@ -373,7 +373,8 @@ function StoreSplicingInfo(){
                 let startCode = cellColumn.charCodeAt(0) - 1
                 let currentLetter = String.fromCharCode(startCode);
                 let currentcableName = sheet[`${currentLetter}${Number(cellRow)-1}`].v.split(" ")[1]
-                //console.log("currentcableName", currentcableName)
+                let newCableName = `${cableInfo[key]['Info'][currentcableName][0]}_to_${cableInfo[key]['Info'][currentcableName][3]}`
+                //console.log('newCableName: ',newCableName)
                 //pick fiber info from splicing row
                 for(let rowIndex = Number(cellRow) + 1; rowIndex <= maxrow; rowIndex++){
                   let tempSpliceInfo=[]
@@ -419,7 +420,6 @@ function StoreSplicingInfo(){
 
           // Merge the new SpliceInfo values with existing ones
           Object.assign(cableInfo[key]['SpliceInfo'], dictSpliceInfo);
-          //cableInfo[key].SpliceInfo[sheetName] = tempSpliceInfo_arr
         }
 
         else if(sheetName == "Equipment"){
@@ -881,8 +881,16 @@ function CompareSplicing(){
       else{ 
         let len_before = HH_Before[HH]["SpliceInfo"][keys].length
         for(let i = 0; i < len_before; i++ ){
-          let value_before = HH_Before[HH]["SpliceInfo"][keys][i]
-          let value_after = HH_After[HH]["SpliceInfo"][keys][i]
+          let value_before
+          let value_after 
+          try{
+            value_before = HH_Before[HH]["SpliceInfo"][keys][i]
+            value_after = HH_After[HH]["SpliceInfo"][keys][i]
+          }
+          catch(error){
+            value_after = undefined
+          }
+          
 
           if(value_after == undefined || value_before.length != value_after.length){
             temp_checkError.push(HH, 'Wrong Splicing3')
