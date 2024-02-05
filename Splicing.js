@@ -534,12 +534,14 @@ function StoreSplicingInfo(){
                   arr_.push(organizedEq[fiberName][j].slice(1))
                 }
               }
-              arr_fiberIn[uniqueFiberIn[k]] = arr_
+              if(arr_.length != 0){
+                arr_fiberIn[uniqueFiberIn[k]] = arr_
+              }
             }
           }
-          if(arr_.length == 0){
-          }
           
+          organizedEq[uniqueName[i]] = arr_fiberIn
+
           if(!cableInfo[HH][infos][uniqueName[i]]){
             cableInfo[HH][infos] = organizedEq
           }
@@ -660,7 +662,8 @@ function AddHHintoMap(){
       eq_desc += '<strong> Cable In:' + fibername + '</strong><br>'
       for(let fiberIn in HH_Before[name]['Equipment'][fibername]){
         let arr = HH_Before[name]['Equipment'][fibername][fiberIn]
-        
+
+        //console.log('nameHH', name ,'\narr',arr)
         if(arr[0].length > 1){
           //eq_desc += `Primary Splitter <br> Fiber In: ${fiberIn} <br>`
           eq_desc += `<table border="1" style = "position: relative;"><thead>
