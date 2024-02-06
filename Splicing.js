@@ -294,6 +294,19 @@ function StoreSplicingInfo(){
     return result;
   }
 
+  //get direction
+  function getDirectionFromString(str) {
+    let words = str.split(' ');
+    let direction = words[0];
+
+    // Check if the first word is a direction
+    if (['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'].includes(direction)) {
+        return direction;
+    } else {
+        return ;
+    }
+}
+
   let cableInfo ={}
   for (let key in workbook_arr) {
     let coord =[]
@@ -318,7 +331,8 @@ function StoreSplicingInfo(){
                 for(let rowIndex = Number(cellRow) + 1; rowIndex <= (Number(cellRow) + totalCable); rowIndex++){
                   //Column A,C,E,F A for A = cable, C = ID, E = Count, F = Direction to
                   tempCable.push({
-                    [sheet[`A${rowIndex}`].v] : [sheet[`C${rowIndex}`].v, sheet[`E${rowIndex}`].v, sheet[`F${rowIndex}`].v, extractValueBetweenToAndComma(sheet[`F${rowIndex}`].v)]
+                    [sheet[`A${rowIndex}`].v] : [sheet[`C${rowIndex}`].v, sheet[`E${rowIndex}`].v, sheet[`F${rowIndex}`].v, 
+                    getDirectionFromString(sheet[`F${rowIndex}`].v), extractValueBetweenToAndComma(sheet[`F${rowIndex}`].v)]
                   })
                 }
               }
@@ -487,6 +501,7 @@ function StoreSplicingInfo(){
       });
     }
   }
+
   //manipulate and organize the data
   let organizedEq, uniqueName, uniqueFiberIn
   for (let HH in cableInfo){
@@ -600,7 +615,6 @@ function StoreSplicingInfo(){
         }
 
       }
-      
     }
     if(passthrough_cable.length>0){
       cableInfo[HH]['Passthrough'] = passthrough_cable
@@ -633,6 +647,65 @@ function AddHHintoMap(){
     return tablesHTML.join('<br>');
   }
 
+  function findDirection(HHName,fiberName){
+    let Info = HH_Before[HHName]['Info']
+    for (let words in Info){
+      if(fiberName == Info[words][0]){
+        return Info[words][3]
+      }
+    }
+  }
+
+  function groupConsecutiveNumbersWithSameValue(arr) {
+    let result = [];
+    let start = parseInt(arr[0][0]);
+    let end = start;
+    let sameValue = arr[0][1];
+
+    for (let i = 1; i < arr.length; i++) {
+        let current = parseInt(arr[i][0]);
+        let currentValue = arr[i][1];
+
+        if (current === end + 1 && currentValue === sameValue) {
+            end = current;
+        } else {
+            if (start === end) {
+                let totalValue = end - start + 1
+                //result.push(start.toString() + ' ' + sameValue);
+                result.push(`IN (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) TO ${totalValue} ${sameValue}`)
+            } else {
+                let totalValue = end - start + 1
+                //result.push(start.toString() + '-' + end.toString() + ' ' + sameValue);
+                result.push(`IN (${start.toString()}-${end.toString()}) ${arr[0][2]}(${arr[0][3]}) TO ${totalValue} ${sameValue}`)
+            }
+            start = current;
+            end = current;
+            sameValue = currentValue;
+        }
+    }
+
+    // Add the last range
+    if (start === end) {
+        let totalValue = end - start + 1
+        //result.push(start.toString() + ' ' + sameValue + ' ' + arr[0][2]);
+        result.push(`IN (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) TO ${totalValue} ${sameValue}`)
+    } else {
+        let totalValue = end - start + 1
+        //result.push(start.toString() + '-' + end.toString() + ' ' + sameValue + ' ' +  arr[0][2]);
+        result.push(`IN (${start.toString()}-${end.toString()}) ${arr[0][2]}(${arr[0][3]}) TO ${totalValue} ${sameValue}`)
+    }
+
+    return result;
+  }
+
+  function extractFOC(inputString) {
+    const lastIndex = inputString.lastIndexOf('-');
+    if (lastIndex !== -1 && lastIndex < inputString.length - 1) {
+        return inputString.substring(lastIndex + 1);
+    } else {
+        return "No value found after last '-'";
+    }
+  }
   //create HH into map
   HH_coordinate.forEach(feature => {
     let description = '', eq_desc = ''
@@ -640,6 +713,94 @@ function AddHHintoMap(){
     const name = feature[0]
     const lat = feature[1];
     const lon = feature[2];
+    const passthroughFiber = HH_Before[name].Passthrough
+
+    //getInfo that not cut and passthrough
+    let labelDesc = [], new_desc =[], arrKeys =[]
+    //for splicing
+    for(let fibername in HH_Before[name]['SpliceInfo']){
+      let arr = HH_Before[name]['SpliceInfo'][fibername]
+      for(let i =0; i < arr.length; i++){
+        //console.log('arr[i][2]: ',arr[i][2])
+        if(arr[i][2] == 'Cut' || arr[i][2] == 'Passthrough'){
+          continue
+        }
+        else{
+          let directionIn = findDirection(name,fibername)
+          let directionOut
+          let foc_in = extractFOC(fibername)
+          let foc_out = extractFOC(arr[i][2])
+
+          if(arr[i][2] === "Equipment"){
+            continue
+          }
+          else{
+            if(passthroughFiber.length > 0){
+              if(passthroughFiber.includes(arr[i][2])){
+                directionOut = findDirection(name,arr[i][2])
+                labelDesc.push(`IN (${arr[i][1]}) ${foc_out}(${directionOut}) TO (${arr[i][0]}) ${foc_in}(${directionIn})<br>`)
+              }
+            }
+            else{
+              directionOut = findDirection(name,arr[i][2])
+              labelDesc.push(`IN (${arr[i][1]}) ${foc_out}(${directionOut}) TO (${arr[i][0]}) ${foc_in}(${directionIn})<br>`)
+            }          
+          }
+        }
+      }
+    }
+    //for equipment
+    //console.log('HH',name)
+    for(let fibername in HH_Before[name]['Equipment']){
+      let direction = findDirection(name,fibername)
+      let keys = Object.keys(HH_Before[name]['Equipment'][fibername])
+      let arr_check =[]
+      for(let i = 0; i < keys.length; i++){
+        if(HH_Before[name]['Equipment'][fibername][keys[i]][0].length === 4){
+          arr_check.push([keys[i],'PS', extractFOC(fibername), direction])
+        }
+        else{
+          arr_check.push([keys[i],'DTS', extractFOC(fibername), direction])
+        }
+
+        for(let j = 0; j <HH_Before[name]['Equipment'][fibername][keys[i]].length; j++ ){
+          let inc
+          let arr = HH_Before[name]['Equipment'][fibername][keys[i]][j]
+          if (i == 0){
+            inc = 0
+          }
+          else{
+            inc = i * 8
+          }
+          
+          if(arr.length ==4){
+            let parts = arr[1].split('-')
+            if(parts.length > 1){
+              let val1 = Number(parts[0]) + inc
+              let val2 = Number(parts[1]) + inc
+              arr[1] = `${val1}-${val2}`
+            }
+            else{
+              let val1 = Number(parts[0]) + inc
+              arr[1] = `${val1}`
+            }
+            let direction = findDirection(name,arr[3])
+            let foc_out = extractFOC(arr[3])
+            if(direction == undefined){
+              new_desc.push(`IN (PORT ${arr[1]}) TO DTS`)
+            }
+            else{
+              new_desc.push(`IN (PORT ${arr[1]}) TO (${arr[2]}) ${foc_out}(${direction})`)
+            }
+          }       
+        }
+      }
+      arrKeys = groupConsecutiveNumbersWithSameValue(arr_check)
+      // console.log('arrKeys: ',arrKeys)
+      // console.log('new_desc: ',new_desc)
+
+    }
+    //console.log('labelDesc: ',labelDesc)
 
     //SplicingInfo
     for(let fibername in HH_Before[name]['SpliceInfo']){
@@ -655,6 +816,7 @@ function AddHHintoMap(){
       }
       arr_fibers[fibername] = temp_arrfibers2
     }
+
     let new_description = convertToTable(description,arr_fibers)
 
     //Equipment
@@ -720,22 +882,30 @@ function AddHHintoMap(){
         <br>
         `
       }
-      
     }
-
     let popupContent = `
     <div class="custom-popup">
         <div id="page1">
-            <h2><strong>${name} : </strong> Splicing Information</h2>
+            <h2><strong>${name} : </strong> Splicing Information (simplified)</h2>
+            <strong>${name}</strong><br>
+            ${labelDesc.join('')}
+            ${arrKeys.join('<br>')}<br>
+            ${new_desc.join('<br>')}<br>
+        </div>
+
+        <div id="page2" style="display: none;">
+            <h2><strong>${name} : </strong> Splicing Information</h2><br>
             ${new_description}
         </div>
-        <div id="page2" style="display: none;">
+
+        <div id="page3" style="display: none;">
             <h2><strong>${name} : </strong> Equipment</h2>
             ${eq_desc}
         </div>
         <div id="navigation">
             <button onclick="showPage(1)">1</button>
             <button onclick="showPage(2)">2</button>
+            <button onclick="showPage(3)">3</button>
         </div>
     </div>
   `;
@@ -915,7 +1085,7 @@ function CompareSplicing(){
 
 //set page in popup
 function showPage(pageNumber) {
-  for (let i = 1; i <= 2; i++) {
+  for (let i = 1; i <= 3; i++) {
       document.getElementById('page' + i).style.display = (i === pageNumber) ? 'block' : 'none';
   }
 }
