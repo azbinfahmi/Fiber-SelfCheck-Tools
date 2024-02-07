@@ -795,10 +795,14 @@ function AddHHintoMap(){
           }       
         }
       }
-      arrKeys = groupConsecutiveNumbersWithSameValue(arr_check)
-      // console.log('arrKeys: ',arrKeys)
+      arrKeys.push(groupConsecutiveNumbersWithSameValue(arr_check))
+      
+      // if(name == 'CRV3-03-02-01-01-HH'){
+      //   console.log('arrKeys: ',arrKeys)
+      //   console.log('new_desc: ',new_desc)
+      // }
       // console.log('new_desc: ',new_desc)
-
+      // console.log('arrKeys: ',arrKeys)
     }
     //console.log('labelDesc: ',labelDesc)
 
