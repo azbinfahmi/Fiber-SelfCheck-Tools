@@ -54,7 +54,7 @@ function handleZipFile_before() {
           console.log('HH_Before',HH_Before)
           AddHHintoMap()
 
-          console.log('HHlayer',HHlayer)
+          //console.log('HHlayer',HHlayer)
         })
         .catch(function (error) {
           console.error('Error reading zip file:', error);
@@ -117,19 +117,7 @@ function handleZipFile_after() {
           console.log('HH_After',HH_After)
           checkError = CompareSplicing()
           HighlightWrongHH(checkError)
-          // let NumOfError = 0
-          // for(let info in checkError){
-          //   let error = checkError[info].length
-          //   NumOfError += error
-          // }
 
-          // if(NumOfError == 0){
-          //   alert('No Error')
-          // }
-          // else{
-          //   alert(`${NumOfError} Error`)
-          //   alert('Green : Equipment Error\nRed : Splicing Error\nYellow : Both Equipment and Splicing error')
-          // }
         })
         .catch(function (error) {
           console.error('Error reading zip file:', error);
@@ -384,11 +372,12 @@ function StoreSplicingInfo(){
                 const colF = readWhichColumn(cellColumn,lastColumn,'#', cellRow, sheet) //# symbol
                 const colNotes = readWhichColumn(cellColumn,lastColumn,'Notes', cellRow, sheet)
 
-                let startCode = cellColumn.charCodeAt(0) - 1
-                let currentLetter = String.fromCharCode(startCode);
-                let currentcableName = sheet[`${currentLetter}${Number(cellRow)-1}`].v.split(" ")[1]
-                let newCableName = `${cableInfo[key]['Info'][currentcableName][0]}_to_${cableInfo[key]['Info'][currentcableName][3]}`
+                //let startCode = cellColumn.charCodeAt(0) - 1
+                //let currentLetter = String.fromCharCode(startCode);
+                //let currentcableName = sheet[`${currentLetter}${Number(cellRow)-1}`].v.split(" ")[1]
+                //let newCableName = `${cableInfo[key]['Info'][currentcableName][0]}_to_${cableInfo[key]['Info'][currentcableName][3]}`
                 //console.log('newCableName: ',newCableName)
+
                 //pick fiber info from splicing row
                 for(let rowIndex = Number(cellRow) + 1; rowIndex <= maxrow; rowIndex++){
                   let tempSpliceInfo=[]
@@ -424,14 +413,13 @@ function StoreSplicingInfo(){
                     tempSpliceInfo_arr.push(tempSpliceInfo.flat())
                   }
                 }
-
               }
             }
           }
 
           let dictSpliceInfo ={}
           dictSpliceInfo[sheetName] = tempSpliceInfo_arr
-
+          
           // Merge the new SpliceInfo values with existing ones
           Object.assign(cableInfo[key]['SpliceInfo'], dictSpliceInfo);
         }
@@ -501,7 +489,6 @@ function StoreSplicingInfo(){
       });
     }
   }
-
   //manipulate and organize the data
   let organizedEq, uniqueName, uniqueFiberIn
   for (let HH in cableInfo){
@@ -611,9 +598,7 @@ function StoreSplicingInfo(){
           if(!passthrough_cable.includes(sub_name)){
             passthrough_cable.push(sub_name)
           }
-          
         }
-
       }
     }
     if(passthrough_cable.length>0){
@@ -730,7 +715,6 @@ function AddHHintoMap(){
           let directionOut
           let foc_in = extractFOC(fibername)
           let foc_out = extractFOC(arr[i][2])
-
           if(arr[i][2] === "Equipment"){
             continue
           }
@@ -750,7 +734,6 @@ function AddHHintoMap(){
       }
     }
     //for equipment
-    //console.log('HH',name)
     for(let fibername in HH_Before[name]['Equipment']){
       let direction = findDirection(name,fibername)
       let keys = Object.keys(HH_Before[name]['Equipment'][fibername])
@@ -775,37 +758,33 @@ function AddHHintoMap(){
           
           if(arr.length ==4){
             let parts = arr[1].split('-')
+            let PortRange
             if(parts.length > 1){
               let val1 = Number(parts[0]) + inc
               let val2 = Number(parts[1]) + inc
-              arr[1] = `${val1}-${val2}`
+              PortRange = `${val1}-${val2}`
             }
             else{
               let val1 = Number(parts[0]) + inc
-              arr[1] = `${val1}`
+              PortRange = `${val1}`
             }
             let direction = findDirection(name,arr[3])
             let foc_out = extractFOC(arr[3])
             if(direction == undefined){
-              new_desc.push(`IN (PORT ${arr[1]}) TO DTS`)
+              new_desc.push(`IN (PORT ${PortRange}) TO DTS`)
             }
             else{
-              new_desc.push(`IN (PORT ${arr[1]}) TO (${arr[2]}) ${foc_out}(${direction})`)
+              new_desc.push(`IN (PORT ${PortRange}) TO (${arr[2]}) ${foc_out}(${direction})`)
             }
           }       
         }
       }
       arrKeys.push(groupConsecutiveNumbersWithSameValue(arr_check))
       
-      // if(name == 'CRV3-03-02-01-01-HH'){
-      //   console.log('arrKeys: ',arrKeys)
-      //   console.log('new_desc: ',new_desc)
-      // }
       // console.log('new_desc: ',new_desc)
       // console.log('arrKeys: ',arrKeys)
     }
-    //console.log('labelDesc: ',labelDesc)
-
+    
     //SplicingInfo
     for(let fibername in HH_Before[name]['SpliceInfo']){
       arr = HH_Before[name]['SpliceInfo'][fibername]
@@ -820,9 +799,7 @@ function AddHHintoMap(){
       }
       arr_fibers[fibername] = temp_arrfibers2
     }
-
     let new_description = convertToTable(description,arr_fibers)
-
     //Equipment
     for(let fibername in HH_Before[name]['Equipment']){
       eq_desc += '<strong> Cable In:' + fibername + '</strong><br>'
@@ -980,11 +957,13 @@ function CompareSplicing(){
             else{
               if(Arr_After.length != Arr_Before.length){
                 temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
+                
               }
               else{
                 for(let i = 0; i <Arr_Before.length; i++ ){
                   for(let j =0; j< Arr_Before[i].length; j++){
                    if(Arr_Before[i][j] != Arr_After[i][j]){
+                    console.log('Arr_After: ',Arr_After[i], 'Arr_Before: ',Arr_Before[i])
                     temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
                    }
                   }
@@ -1009,6 +988,8 @@ function CompareSplicing(){
       //kalau cable yang connect ke HH ttoal length tak sama
       if(CableLength_Before != CableLength_After){
         console.log(HH,'are not connect with cable')
+        //console.log('CableLength_Before: ',CableLength_Before, 'CableLength_After: ',CableLength_After)
+
         temp_checkError.push(HH, 'Missing Cable')
       }
 
