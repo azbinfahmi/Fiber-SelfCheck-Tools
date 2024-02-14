@@ -1313,11 +1313,19 @@ function TraceFiber(){
         color: 'red',
         fillColor: 'rgb(255, 128, 128)'
       })
+      
       if(duplicateHH.includes(HHlayer[i].properties.name)){
-          HHlayer[i].setStyle({
-            fillColor: 'purple',
-          })
-        }
+        HHlayer[i].setStyle({
+          fillColor: 'purple',
+        })
+      }
+
+      if(hh_PS.includes(HHlayer[i].properties.name)){
+        HHlayer[i].setStyle({
+          color: 'white',
+          fillColor: 'rgb(255, 128, 128)'
+        })
+      }
       //update store color
       storeHHColor[i] = [HHlayer[i].properties.name, HHlayer[i].options.color, HHlayer[i].options.fillColor]
     }
