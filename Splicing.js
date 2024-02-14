@@ -1,5 +1,5 @@
 let workbook_arr = {}, FileName=[], cableInfo ={}, HH_Before =[], HH_After =[], HHlayer =[]
-checkError ={'Equipment':[],'Splicing':[]}, HH_coordinate =[]
+checkError ={'Equipment':[],'Splicing':[]}, HH_coordinate =[],eqFromCableSheet = {}
 
 function handleZipFile_before() {
   function cleanFileName(fileName) {
@@ -137,7 +137,6 @@ function StoreSplicingInfo(){
     }
     return null; // Return null if no match is found
 }
-
   function CheckCableAttach(arr){
     if(arr.includes("Equipment")){
       return arr.length -1
@@ -146,7 +145,6 @@ function StoreSplicingInfo(){
       return arr.length
     }
   }
-
   //simplified splice info
   function simplifiedSplicing(arr){
     let findIndex = [0]
@@ -197,11 +195,10 @@ function StoreSplicingInfo(){
     
     return result
   }
-
   //simplified equipment data
   function simplifiedEquipment(arr){
     let findIndex = [0]
-
+    //console.log('arr: ',arr)
     for(let i =1; i< arr.length; i++){
 
       if(arr[i][0] != arr[i-1][0]){
@@ -257,7 +254,6 @@ function StoreSplicingInfo(){
     
     return result
   }
-
   //find which column based on name and row given
   function readWhichColumn(startColumn,lastColumn, value, row, sheet){
     let startCode = startColumn.charCodeAt(0)
@@ -273,7 +269,6 @@ function StoreSplicingInfo(){
     }
 
   }
-  
   //use in Info keys untuk ambik fiber tu ke HH mana
   function extractValueBetweenToAndComma(input) {
     const startIndex = input.indexOf('to') + 3; // Adding 3 to skip 'to' and the following space
@@ -281,7 +276,6 @@ function StoreSplicingInfo(){
     const result = input.substring(startIndex, endIndex).trim();
     return result;
   }
-
   //get direction
   function getDirectionFromString(str) {
     let words = str.split(' ');
@@ -293,8 +287,15 @@ function StoreSplicingInfo(){
     } else {
         return ;
     }
-}
-
+  }
+  //geet cableout name based on keyword(A,B,C,D)
+  function getCableOutfromInfo(HHname,keyword){
+    let arr = cableInfo[HHname]['Info'][keyword]
+    if(keyword == ''){
+      return ''
+    }
+    return `${arr[0]}_to_${arr[4]}`
+  }
   let cableInfo ={}
   for (let key in workbook_arr) {
     let coord =[]
@@ -305,10 +306,9 @@ function StoreSplicingInfo(){
       workbook.SheetNames.forEach(sheetName => {
         if(sheetName != "Equipment"){
           let tempCable=[]
-          let tempSpliceInfo_arr =[]
+          let tempSpliceInfo_arr =[], storeEQ_arr = []
           const sheet = workbook.Sheets[sheetName];
           const maxrow = sheet['!ref'].match(/(\d+)$/)[1]
-
           //cari Info dekat table info
           for(var cellref in sheet){
             if( cellref.match(/([A-Z]+)(\d+)/) != null){
@@ -328,7 +328,7 @@ function StoreSplicingInfo(){
               if( coord.length == 0 && HH_Before.length == 0){
                 if (cellValue.includes("Lat") && cellValue.includes("Lon")){
                   coord = extractCoordinates(cellValue)
-                  HH_coordinate.push([key,coord[0],coord[1]])
+                  HH_coordinate.push([key,coord[0],coord[1],''])
                 }
               }
               
@@ -344,9 +344,11 @@ function StoreSplicingInfo(){
             if (!cableInfo[key]) {
               if(totalCable == workbook.SheetNames){
                 cableInfo[key] = { 'Info': {}, 'SpliceInfo': {}, 'coordinates': []};
+                eqFromCableSheet[key] = { 'EqInfo':{}, 'EqInfo_Edited':{}}
               }
               else{
                 cableInfo[key] = { 'Info': {}, 'SpliceInfo': {}, 'Equipment': {}, 'coordinates': []};
+                eqFromCableSheet[key] = { 'EqInfo':{}, 'EqInfo_Edited':{}}
               }
               
             }
@@ -356,6 +358,7 @@ function StoreSplicingInfo(){
           }
 
           //pick fiber splicing
+          let newCableName
           for(var cellref in sheet){
             if( cellref.match(/([A-Z]+)(\d+)/) != null){
               const cellColumn = cellref.match(/([A-Z]+)(\d+)/)[1]
@@ -372,15 +375,14 @@ function StoreSplicingInfo(){
                 const colF = readWhichColumn(cellColumn,lastColumn,'#', cellRow, sheet) //# symbol
                 const colNotes = readWhichColumn(cellColumn,lastColumn,'Notes', cellRow, sheet)
 
-                //let startCode = cellColumn.charCodeAt(0) - 1
-                //let currentLetter = String.fromCharCode(startCode);
-                //let currentcableName = sheet[`${currentLetter}${Number(cellRow)-1}`].v.split(" ")[1]
-                //let newCableName = `${cableInfo[key]['Info'][currentcableName][0]}_to_${cableInfo[key]['Info'][currentcableName][3]}`
-                //console.log('newCableName: ',newCableName)
-
+                let startCode = cellColumn.charCodeAt(0) - 1
+                let currentLetter = String.fromCharCode(startCode);
+                let currentcableName = sheet[`${currentLetter}${Number(cellRow)-1}`].v.split(" ")[1]
+                newCableName = `${cableInfo[key]['Info'][currentcableName][0]}_to_${cableInfo[key]['Info'][currentcableName][4]}`
                 //pick fiber info from splicing row
+                let eqName, fiber_IN
                 for(let rowIndex = Number(cellRow) + 1; rowIndex <= maxrow; rowIndex++){
-                  let tempSpliceInfo=[]
+                  let tempSpliceInfo=[], storeEQ = []
                   const fiberVal = sheet[`${colFiber}${rowIndex}`].v
                   const eqVal = sheet[`${colEquipment}${rowIndex}`].v
                   const portVal =  sheet[`${colPort}${rowIndex}`].v
@@ -393,7 +395,7 @@ function StoreSplicingInfo(){
                     tempSpliceInfo.push(fiberVal)
                     if(notesVal === "Cut" || notesVal === "Passthrough"){
                       if(notesVal === "Passthrough"){
-                        let cable = cableInfo[key]['Info'][`${cableVal}`][0]
+                        let cable =  getCableOutfromInfo(key,cableVal)
                         tempSpliceInfo.push(cable,notesVal)
                       }
                       else{
@@ -401,27 +403,43 @@ function StoreSplicingInfo(){
                       }
                     }
                     else{
-                      let cable = cableInfo[key]['Info'][`${cableVal}`][0]
+                      let cable =  getCableOutfromInfo(key,cableVal)
                       tempSpliceInfo.push(fVal,cable)
                     }
                   }
                   else{
-                    continue
+                    if(eqVal != "" && portVal != ""){
+                      eqName = eqVal.replace(/[^a-zA-Z0-9]/g, '')
+                      fiber_IN = fiberVal
+                    }
+
+                    if(eqVal != "" && cableVal == ""){
+                      storeEQ.push(fiberVal, eqName)
+                    }
+                    else {
+                      storeEQ.push(fiber_IN , eqName, portVal, fVal, getCableOutfromInfo(key,cableVal))
+                    }
+                    //continue
                   }
 
                   if(tempSpliceInfo.length>0){
                     tempSpliceInfo_arr.push(tempSpliceInfo.flat())
+                  }
+                  if(storeEQ.length > 0){
+                    storeEQ_arr.push(storeEQ.flat())
                   }
                 }
               }
             }
           }
 
-          let dictSpliceInfo ={}
-          dictSpliceInfo[sheetName] = tempSpliceInfo_arr
+          let dictSpliceInfo ={}, EqInfo = {}
+          dictSpliceInfo[newCableName] = tempSpliceInfo_arr
+          EqInfo[newCableName] = storeEQ_arr
           
           // Merge the new SpliceInfo values with existing ones
           Object.assign(cableInfo[key]['SpliceInfo'], dictSpliceInfo);
+          Object.assign(eqFromCableSheet[key]['EqInfo'], EqInfo);
         }
 
         else if(sheetName == "Equipment"){
@@ -489,6 +507,7 @@ function StoreSplicingInfo(){
       });
     }
   }
+  //console.log('eqFromCableSheet: ',eqFromCableSheet)
   //manipulate and organize the data
   let organizedEq, uniqueName, uniqueFiberIn
   for (let HH in cableInfo){
@@ -551,8 +570,7 @@ function StoreSplicingInfo(){
       }   
     }
   }
-
-  //reorganize the splice and equipment info
+  //reorganize the splice and equipment info (ada nak guna satgi)
   for(let HH in cableInfo){
     passthrough_cable =[]
     for(let sub_name in cableInfo[HH]['SpliceInfo']){
@@ -570,22 +588,6 @@ function StoreSplicingInfo(){
           }
         }
       }
-    }
-    //change eq detail into fiber splice Info
-    for(let FiberName in cableInfo[HH]['Equipment']){
-      let fNumber_arr =[]
-      for(let fNumber in cableInfo[HH]['Equipment'][FiberName]){
-        fNumber_arr.push(fNumber)
-      }
-      let len = fNumber_arr.length - 1
-      let eqInfo = [`${fNumber_arr[0]}-${fNumber_arr[len]}`, '' ,'Equipment']
-      cableInfo[HH]['SpliceInfo'][FiberName].push(eqInfo)
-      //now sort
-      cableInfo[HH]['SpliceInfo'][FiberName].sort((a, b) => {
-        return parseInt(a[0]) - parseInt(b[0]);
-      });
-      
-      //Object.assign(cableInfo[HH]['SpliceInfo'][FiberName], eqInfo);
     }
 
     //create passthrough keys
@@ -605,6 +607,70 @@ function StoreSplicingInfo(){
       cableInfo[HH]['Passthrough'] = passthrough_cable
     }
   }
+  //reorganize eqFromCableSheet
+  for(let HH in eqFromCableSheet){
+    arr = eqFromCableSheet[HH]['EqInfo']
+    for(let name in arr){
+      const dict = {};
+      arr[name].forEach(arrs => {
+        const key = arrs[0];
+        if (!dict[key]) {
+          dict[key] = [];
+        }
+        dict[key].push(arrs.slice(1));
+      });
+      let new_dict = {}
+      for(let fiberin in dict){
+        let arr_ = dict[fiberin]
+        let result = simplifiedEquipment(arr_)
+        new_dict[fiberin] = result
+      }
+      eqFromCableSheet[HH]['EqInfo_Edited'][name] = new_dict
+    }
+  }
+  //compare cableinfo and eqFromCableSheet
+  for(let HH in cableInfo){
+    for(let cablename in cableInfo[HH]['Equipment']){
+      let arr1 = cableInfo[HH]['Equipment'][cablename], newFibername
+      for(let fiberin in arr1){
+        for(let cablename1 in eqFromCableSheet[HH]['EqInfo_Edited']){
+          let arr2 = eqFromCableSheet[HH]['EqInfo_Edited'][cablename1]
+          for(let fiberin2 in arr2){
+            if(fiberin2 === fiberin){
+              newFibername = cablename1
+              for(let i = 0; i < arr1[fiberin].length; i++){
+                if(arr2[fiberin2][i][3] != '' && arr2[fiberin2][i].length == 4){
+                  cableInfo[HH]['Equipment'][cablename][fiberin][i][3] =  arr2[fiberin2][i][3]
+                }
+              }
+            }
+          }
+        }
+      }
+      cableInfo[HH]['Equipment'][newFibername] = cableInfo[HH]['Equipment'][cablename]
+      delete cableInfo[HH]['Equipment'][cablename]
+    }
+  }
+  //bawak masuk info dari cableinfo Equipment untuk show cable mana yang amsuk ke dalam equipment
+  for (let HH in cableInfo){
+    //change eq detail into fiber splice Info use later
+    for(let FiberName in cableInfo[HH]['Equipment']){
+      let fNumber_arr =[]
+      for(let fNumber in cableInfo[HH]['Equipment'][FiberName]){
+        fNumber_arr.push(fNumber)
+      }
+      let len = fNumber_arr.length - 1
+      let eqInfo = [`${fNumber_arr[0]}-${fNumber_arr[len]}`, '' ,'Equipment']
+      cableInfo[HH]['SpliceInfo'][FiberName].push(eqInfo)
+      //now sort
+      cableInfo[HH]['SpliceInfo'][FiberName].sort((a, b) => {
+        return parseInt(a[0]) - parseInt(b[0]);
+      });
+      
+      //Object.assign(cableInfo[HH]['SpliceInfo'][FiberName], eqInfo);
+    }
+  }
+
   return cableInfo
 }
 
@@ -633,9 +699,13 @@ function AddHHintoMap(){
   }
 
   function findDirection(HHName,fiberName){
+    const splitNames = fiberName.split('_to_');
+    let namecable = splitNames[0]
+    let nameHH = splitNames[1]
+
     let Info = HH_Before[HHName]['Info']
     for (let words in Info){
-      if(fiberName == Info[words][0]){
+      if(namecable == Info[words][0] && nameHH == Info[words][4]){
         return Info[words][3]
       }
     }
@@ -684,15 +754,59 @@ function AddHHintoMap(){
   }
 
   function extractFOC(inputString) {
-    const lastIndex = inputString.lastIndexOf('-');
-    if (lastIndex !== -1 && lastIndex < inputString.length - 1) {
-        return inputString.substring(lastIndex + 1);
-    } else {
-        return "No value found after last '-'";
+    const splitNames = inputString.split('_to_');
+    let namecable = splitNames[0]
+    if(namecable.startsWith('LA') || namecable.startsWith('BB'))
+    {
+      return namecable
+      // if(namecable.startsWith('LA')){
+      //   return 'LA'
+      // }
+      // else{
+      //   return 'BB'
+      // }
     }
+    else{
+      const lastIndex = namecable.lastIndexOf('-');
+      if (lastIndex !== -1 && lastIndex < namecable.length - 1) {
+          return namecable.substring(lastIndex + 1);
+      } else {
+          return namecable;
+      }
+    }
+    
   }
+
+  function findDuplicateNames(data) {
+    const names = {};
+    const duplicateNames = [];
+
+    data.forEach(entry => {
+        const name = entry[0];
+        if (names[name]) {
+            // If the name is already encountered, store it as a duplicate
+            duplicateNames.push(name);
+        } else {
+            // Mark the name as encountered
+            names[name] = true;
+        }
+    });
+
+    return duplicateNames;
+  }
+  //find the duplicate name of HH
+  let duplicateHH = findDuplicateNames(HH_coordinate)
+  console.log('duplicateHH: ',duplicateHH)
+  let popup = ''
+  if(duplicateHH.length > 0){
+    for(let i = 0; i< duplicateHH.length; i++){
+      popup += `${duplicateHH[i]}\n`
+    }
+    alert("Please change this HH's name: \n" + popup)
+  }
+
   //create HH into map
-  HH_coordinate.forEach(feature => {
+  HH_coordinate.forEach((feature, hh_index) => {
     let description = '', eq_desc = ''
     let arr_fibers = {}
     const name = feature[0]
@@ -700,7 +814,7 @@ function AddHHintoMap(){
     const lon = feature[2];
     const passthroughFiber = HH_Before[name].Passthrough
 
-    //getInfo that not cut and passthrough
+    //getInfo that not cut and passthrough for simplified splicing INFO
     let labelDesc = [], new_desc =[], arrKeys =[]
     //for splicing
     for(let fibername in HH_Before[name]['SpliceInfo']){
@@ -741,6 +855,7 @@ function AddHHintoMap(){
       for(let i = 0; i < keys.length; i++){
         if(HH_Before[name]['Equipment'][fibername][keys[i]][0].length === 4){
           arr_check.push([keys[i],'PS', extractFOC(fibername), direction])
+          HH_coordinate[hh_index][3] = 'PS'
         }
         else{
           arr_check.push([keys[i],'DTS', extractFOC(fibername), direction])
@@ -864,6 +979,7 @@ function AddHHintoMap(){
         `
       }
     }
+
     let popupContent = `
     <div class="custom-popup">
         <div id="page1">
@@ -902,11 +1018,21 @@ function AddHHintoMap(){
     `;
 
     document.head.innerHTML += additionalStyles;
-    // Create a black circle marker
+    // Create circle marker
+    let color = 'blue'
+    let fillColor = 'lightblue'
+    if(HH_coordinate[hh_index][3] == 'PS'){
+      color = 'white'
+      fillColor = 'black'
+    }
+    if(duplicateHH.includes(HH_coordinate[hh_index][0])){
+      color = 'purple'
+      fillColor = 'purple'
+    }
     geo_HHlayer = L.circleMarker([lat, lon], {
-      radius: 5,
-      color: 'black',
-      fillColor: 'black',
+      radius: 8,
+      color: color,
+      fillColor: fillColor,
       fillOpacity: 1
     });
 
@@ -917,10 +1043,10 @@ function AddHHintoMap(){
     geo_HHlayer.on('click', function() {
         this.openPopup();
     });
-
     geo_HHlayer.addTo(map)
     HHlayer.push(geo_HHlayer)
   })
+  
 }
 
 //compare splicing before and after
@@ -977,8 +1103,8 @@ function CompareSplicing(){
         checkError['Equipment'].push(temp_checkError)
       }
     }
-
-     //compare splice before and after
+    
+    //compare splice before and after
     for(let keys in HH_Before[HH]["SpliceInfo"]){
       let temp_checkError = []
       let CableLength_Before = Object.keys(HH_Before[HH]["SpliceInfo"]).length
@@ -1107,7 +1233,7 @@ function HighlightWrongHH(checkError){
       if(HHname == HHeq[i]){
         HHlayer[index].setStyle({
           color: 'green',
-          fillColor: 'green',
+          fillColor: 'lightgreen',
           fillOpacity: 1
         });
       }
@@ -1126,7 +1252,7 @@ function HighlightWrongHH(checkError){
       if(HHname == HHsplicing[i]){
         HHlayer[index].setStyle({
           color: 'red',
-          fillColor: 'red',
+          fillColor: 'lightcoral',
           fillOpacity: 1
         });
       }
@@ -1143,7 +1269,7 @@ function HighlightWrongHH(checkError){
         if(HHname == HHeq[i]){
           HHlayer[index].setStyle({
             color: 'yellow',
-            fillColor: 'yellow',
+            fillColor: 'lightyellow',
             fillOpacity: 1
           });
         }
@@ -1161,6 +1287,28 @@ function HighlightWrongHH(checkError){
   else{
     alert(`${wrongHH.length} Error HH`)
     alert('Green : Equipment Error\nRed : Splicing Error\nYellow : Both Equipment and Splicing error')
+    var legendControl = L.control({position: 'bottomright'});
+    // Define the content for the control
+    legendControl.onAdd = function(map) {
+      var div = L.DomUtil.create('div', 'info legend');
+      div.innerHTML +=
+          '<div style="border: 1px solid #ccc; padding: 5px; background-color: white; color: black;">' +
+              `FAIL HH: ${wrongHH.length}` +
+          '</div>' +
+          '<div style="border: 1px solid #ccc; border-top: none; padding: 5px; background-color: green; color: black;">' +
+              '<strong>Green:</strong> Equipment Error' +
+          '</div>' +
+          '<div style="border: 1px solid #ccc; border-top: none; padding: 5px; background-color: red; color: black;">' +
+              '<strong>Red:</strong> Splicing Error' +
+          '</div>' +
+          '<div style="border: 1px solid #ccc; border-top: none; padding: 5px; background-color: yellow; color: black;">' +
+              '<strong>Yellow:</strong> Both Equipment and Splicing Error' +
+          '</div>';
+      return div;
+    };
+
+// Add the control to the map
+legendControl.addTo(map);
   }
 }
 

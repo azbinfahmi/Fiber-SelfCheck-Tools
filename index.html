@@ -21,6 +21,7 @@
                 <label rowspan="2">Insert Fiber(After)</label><br>
                 <input type="file" id="f-after" accept=".geojson">
             </td>
+
             <td rowspan="2">
                 <button id="run-QC">Run QC</button>
             </td>
@@ -31,7 +32,7 @@
         </tr>
         <tr>
             <td>
-                <label>Insert Handhole (Optional)</label><br>
+                <label>Optional layer</label><br>
                 <input type="file" id="handhole" accept=".geojson">
             </td>
 
@@ -53,6 +54,9 @@
             <td>
                 <label for="zipFileInput">Splicing After:</label><br>
                 <input type="file" id="zipFileInput_after" accept=".zip" onchange="handleZipFile_after()">
+            </td>
+            <td>
+                <p> <a href="Tracing tools/tracing.html"> Tracing tools</a></p>
             </td>
         </tr>
     </table>

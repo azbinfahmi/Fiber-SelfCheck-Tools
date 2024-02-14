@@ -12,11 +12,23 @@ var map = L.map('map', {
     minZoom: 2,
 }).setView([0, 0], 2);
 
-// Add a base map layer (you can choose a different tile layer)
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© Develop by AzbinFahmi',
-maxZoom: 99,
-}).addTo(map);
+var darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© Develop by AzbinFahmi',
+    maxZoom: 99
+});
+var lightLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© Develop by AzbinFahmi',
+    maxZoom: 99
+});
+// Add the light layer by default
+lightLayer.addTo(map);
+
+// Add a control element to toggle between dark and light themes
+var baseLayers = {
+    "Light Theme": lightLayer,
+    "Dark Theme": darkLayer
+};
+L.control.layers(baseLayers).addTo(map);
 
 //add coordinates ino viewer
 var coordinatesDiv = document.getElementById('coordinates');
