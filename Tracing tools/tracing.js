@@ -638,7 +638,8 @@ function StoreSplicingInfo(){
     }
     //bawak masuk info dari cableinfo Equipment untuk show cable mana yang amsuk ke dalam equipment
     for (let HH in cableInfo){
-      // if( HH == 'NCL3-10-04-02-03-HH'){
+      // console.log('HH',HH)
+      // if( HH == 'FWB3-15-01-01-01-HH'){
       //   console.log("cableInfo[HH]['Equipment']: ",cableInfo[HH])
       //   console.log('eqFromCableSheet: ',eqFromCableSheet[HH])
       // }
@@ -650,11 +651,22 @@ function StoreSplicingInfo(){
         let new_fNumber = formatArray(fNumber_arr)
         for(let i = 0; i < new_fNumber.length; i++){
           let eqInfo = [`${new_fNumber[i]}`, '' ,'Equipment']
-          console.log()
-          cableInfo[HH]['SpliceInfo'][FiberName].push(eqInfo)
-          cableInfo[HH]['SpliceInfo'][FiberName].sort((a, b) => {
-              return parseInt(a[0]) - parseInt(b[0]);
-            });
+          try{
+            cableInfo[HH]['SpliceInfo'][FiberName].push(eqInfo)
+            cableInfo[HH]['SpliceInfo'][FiberName].sort((a, b) => {
+                return parseInt(a[0]) - parseInt(b[0]);
+              });
+          }
+          catch(error){
+            let arr = cableInfo[HH]['Equipment']
+            for(let fname in arr){
+              
+              if(fname == 'undefined'){
+                delete cableInfo[HH]['Equipment'][fname]
+              }
+            }
+          }
+         
         }
       }
     }
@@ -703,7 +715,12 @@ function AddHHintoMap(){
       let start = parseInt(arr[0][0]);
       let end = start;
       let sameValue = arr[0][1];
-  
+      if(sameValue == 'DTS'){
+        newValue = 'Secondary Splitter'
+      }
+      else{
+        newValue = 'Primary Splitter'
+      }
       for (let i = 1; i < arr.length; i++) {
           let current = parseInt(arr[i][0]);
           let currentValue = arr[i][1];
@@ -714,12 +731,15 @@ function AddHHintoMap(){
               if (start === end) {
                   let totalValue = end - start + 1
                   //result.push(start.toString() + ' ' + sameValue);
-                  result.push(`IN (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) TO ${totalValue} ${sameValue}`)
-              } else {
+                  // result.push(`IN (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
+                  result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+                } else {
                   let totalValue = end - start + 1
+                  console.log('sameValue: ',sameValue)
                   //result.push(start.toString() + '-' + end.toString() + ' ' + sameValue);
-                  result.push(`IN (${start.toString()}-${end.toString()}) ${arr[0][2]}(${arr[0][3]}) TO ${totalValue} ${sameValue}`)
-              }
+                  // result.push(`IN (${start.toString()}-${end.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
+                  result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+                }
               start = current;
               end = current;
               sameValue = currentValue;
@@ -730,11 +750,13 @@ function AddHHintoMap(){
       if (start === end) {
           let totalValue = end - start + 1
           //result.push(start.toString() + ' ' + sameValue + ' ' + arr[0][2]);
-          result.push(`IN (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) TO ${totalValue} ${sameValue}`)
-      } else {
+          // result.push(`In (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
+          result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+
+        } else {
           let totalValue = end - start + 1
           //result.push(start.toString() + '-' + end.toString() + ' ' + sameValue + ' ' +  arr[0][2]);
-          result.push(`IN (${start.toString()}-${end.toString()}) ${arr[0][2]}(${arr[0][3]}) TO ${totalValue} ${sameValue}`)
+          result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
       }
   
       return result;
@@ -881,7 +903,9 @@ function AddHHintoMap(){
             }
             else{
               directionOut = findDirection(name,arr[i][2])
-              labelDesc.push(`IN (${arr[i][1]}) ${foc_out}(${directionOut}) TO (${arr[i][0]}) ${foc_in}(${directionIn})<br>`)    
+              // labelDesc.push(`IN (${arr[i][1]}) ${foc_out}(${directionOut}) TO (${arr[i][0]}) ${foc_in}(${directionIn})<br>`)
+              labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)    
+              
             }
           }
         }
@@ -926,10 +950,13 @@ function AddHHintoMap(){
               let direction = findDirection(name,arr[3])
               let foc_out = extractFOC(arr[3])
               if(direction == undefined){
-                new_desc.push(`IN (PORT ${PortRange}) TO DTS`)
+                //new_desc.push(`In (Port ${PortRange}) Out DTS`)
+                new_desc.push(`In (Port ${PortRange}) Out Secondary Splitter`)
               }
               else{
-                new_desc.push(`IN (PORT ${PortRange}) TO (${arr[2]}) ${foc_out}(${direction})`)
+                // new_desc.push(`In (Port ${PortRange}) Out (${arr[2]}) ${foc_out}(${direction})`)
+                new_desc.push(`In (Port ${PortRange}) Out (${arr[2]}) ${direction}`)
+
               }
             }       
           }
@@ -1304,8 +1331,26 @@ function TraceFiber(){
       HHtoObserve[HH]['Fail'] = temp_fail
     }
   }
-  console.log('hhFromPS: ',hhFromPS)
+  
+  let incomingFiberToPS = {}
+  //Find end HH for incoming fiber in PS
+  for(let HH in hhFromPS){
+    let arr = HH_Before[HH]['Equipment']
+    for(let fibername in arr){
+      let arr_fiber = []
+      for(let fiberIn in arr[fibername]){
+        if(arr[fibername][fiberIn][0].length == 4){
+          arr_fiber.push(fiberIn)
+        }
+      }
+      let dict = {[fibername] : arr_fiber}
+      //incomingFiberToPS[HH]['IncomingFiber'] = dict
+    }
+    
 
+  }
+  console.log('hhFromPS: ',hhFromPS)
+  console.log('incomingFiberToPS: ',incomingFiberToPS)
   //highlight the wrong HH
   for(let i = 0; i< HHlayer.length; i++){
     if(failTracingHH.includes(HHlayer[i].properties.name)){
@@ -1330,7 +1375,7 @@ function TraceFiber(){
       storeHHColor[i] = [HHlayer[i].properties.name, HHlayer[i].options.color, HHlayer[i].options.fillColor]
     }
   }
-
+  
   console.log('failTracingHH: ',failTracingHH)
   
 }
