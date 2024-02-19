@@ -735,7 +735,6 @@ function AddHHintoMap(){
                   result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
                 } else {
                   let totalValue = end - start + 1
-                  console.log('sameValue: ',sameValue)
                   //result.push(start.toString() + '-' + end.toString() + ' ' + sameValue);
                   // result.push(`IN (${start.toString()}-${end.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
                   result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
@@ -789,7 +788,94 @@ function AddHHintoMap(){
     function HighlightFiberPath(HHname){
       function highlightFiberandHH(arr){
         freeze = true
+        // Check if any fiber does not have same path
+        let filteredArrays = Object.entries(arr).filter(([key]) => key !== 'DTS' && key !== 'Fail');
+        let lengths = filteredArrays.map(([_, array]) => array.reduce((acc, cur) => acc + cur.length, 0));
+        let uniqueLengths = new Set(lengths);
+        let diffLength = uniqueLengths.size > 1;
+
+        let minLength = Infinity;
+        let shortestKey = null;
+
+        if (diffLength) {
+            filteredArrays.forEach(([key, array]) => {
+                let length = array.reduce((acc, cur) => acc + cur.length, 0);
+                if (length < minLength) {
+                    minLength = length;
+                    shortestKey = key;
+                }
+            });
+        }
         //highlight selected fiber color
+        for(let fiberIn in arr){
+          for(let i = 0; i < arr[fiberIn].length; i++){
+            if(arr[fiberIn][i].length == 5){
+              let colors = 'yellow'
+              //highlight fiber
+              let leafletID = arr[fiberIn][i][4]
+              let HH = arr[fiberIn][i][2]
+              Layers[0]._layers[leafletID].setStyle({
+                color: colors,
+              })
+              //highlight HH
+              for(let j = 0; j<storeHHColor.length;j++){
+                if(storeHHColor[j][0] == HH){
+                  HHlayer[j].setStyle({
+                    fillColor: colors,
+                    fillOpacity: 0.9,
+                  })
+                  if(i ==0){
+                    HHlayer[j].setStyle({
+                      color: colors,
+                      fillColor: colors,
+                      fillOpacity: 0.9,
+                    })
+                  }
+                  break;
+                }
+              }
+            }
+          }
+        }
+
+        //highlight the wrong cable
+        if(diffLength){
+          console.log('shortestKey: ',shortestKey)
+          for(let i = 0; i < arr[shortestKey].length; i++){
+            if(arr[shortestKey][i].length == 5){
+              let colors = '#f55b8b'
+              //highlight fiber
+              let leafletID = arr[shortestKey][i][4]
+              let HH = arr[shortestKey][i][2]
+              Layers[0]._layers[leafletID].setStyle({
+                color: colors,
+              })
+            }
+          }
+        }
+      }
+        //highlight incoming path from PS
+      function HighlightFiberPath_FromPS(arr){
+        freeze = true
+        // Check if any fiber does not have same path
+        // Check if any fiber does not have same path
+        let filteredArrays = Object.entries(arr).filter(([key]) => key !== 'DTS' && key !== 'Fail');
+        let lengths = filteredArrays.map(([_, array]) => array.reduce((acc, cur) => acc + cur.length, 0));
+        let uniqueLengths = new Set(lengths);
+        let diffLength = uniqueLengths.size > 1;
+
+        let minLength = Infinity;
+        let shortestKey = null;
+
+        if (diffLength) {
+            filteredArrays.forEach(([key, array]) => {
+                let length = array.reduce((acc, cur) => acc + cur.length, 0);
+                if (length < minLength) {
+                    minLength = length;
+                    shortestKey = key;
+                }
+            });
+        }
         for(let fiberIn in arr){
           for(let i = 0; i < arr[fiberIn].length; i++){
             if(arr[fiberIn][i].length == 5){
@@ -797,32 +883,34 @@ function AddHHintoMap(){
               let leafletID = arr[fiberIn][i][4]
               let HH = arr[fiberIn][i][2]
               Layers[0]._layers[leafletID].setStyle({
-                color: 'yellow',
+                color: '#40E0D0',
               })
               //highlight HH
               for(let j = 0; j<storeHHColor.length;j++){
                 if(storeHHColor[j][0] == HH){
                   HHlayer[j].setStyle({
-                    fillColor: 'yellow',
+                    fillColor: '#40E0D0',
                     fillOpacity: 0.9,
                   })
-                  if(i ==0){
-                    HHlayer[j].setStyle({
-                      color: 'yellow',
-                      fillColor: 'yellow',
-                      fillOpacity: 0.9,
-                    })
-                  }
-                  // if(duplicateHH.includes(HH)){
-                  //   HHlayer[j].setStyle({
-                  //     color: 'purple',
-                  //     fillColor: 'purple'
-                  //   })
-                  // }
-
                   break;
                 }
               }
+            }
+          }
+        }
+
+        //highlight cable yang tak sama length
+        if(diffLength){
+          console.log('shortestKey: ',shortestKey)
+          for(let i = 0; i < arr[shortestKey].length; i++){
+            if(arr[shortestKey][i].length == 5){
+              let colors = '#f55b8b'
+              //highlight fiber
+              let leafletID = arr[shortestKey][i][4]
+              let HH = arr[shortestKey][i][2]
+              Layers[0]._layers[leafletID].setStyle({
+                color: colors,
+              })
             }
           }
         }
@@ -852,13 +940,23 @@ function AddHHintoMap(){
       let arr_PS = hhFromPS[HHname]
       if(arr_PS != undefined){
         freeze = true
-        console.log('arr_PS: ',arr_PS)
         for(let fibername in arr_PS){
-          for(let fiberIn in arr_PS[fibername]){
-            let HH = arr_PS[fibername][fiberIn]
-            let_highlightArr = HHtoObserve[HH]
-            highlightFiberandHH(let_highlightArr)
+          if(fibername == 'IncomingFiber'){
+            for(let cable in arr_PS[fibername]){
+              console.log('IncomingFiber: ',arr_PS['IncomingFiber'][cable])
+              let temp_ = arr_PS[fibername][cable]
+              HighlightFiberPath_FromPS(temp_)
+            }
           }
+          else{
+            console.log('HH served: ',arr_PS[fibername])
+            for(let fiberIn in arr_PS[fibername]){
+              let HH = arr_PS[fibername][fiberIn]
+              let highlightArr = HHtoObserve[HH]
+              highlightFiberandHH(highlightArr)
+            }
+          }
+          
         }
         
       }
@@ -1178,7 +1276,6 @@ function TraceFiber(){
     }
     return false
   }
-
   function pickNewValue(arr, value){
     range1 = arr[0].split('-')
     range2 = arr[1].split('-')
@@ -1200,7 +1297,7 @@ function TraceFiber(){
       index_2++
     }
   }
-
+  
   //console.log('hh_PS: ',hh_PS)
   console.log('HHtoObserve: ',HHtoObserve)
 
@@ -1331,8 +1428,6 @@ function TraceFiber(){
       HHtoObserve[HH]['Fail'] = temp_fail
     }
   }
-  
-  let incomingFiberToPS = {}
   //Find end HH for incoming fiber in PS
   for(let HH in hhFromPS){
     let arr = HH_Before[HH]['Equipment']
@@ -1343,14 +1438,70 @@ function TraceFiber(){
           arr_fiber.push(fiberIn)
         }
       }
-      let dict = {[fibername] : arr_fiber}
-      //incomingFiberToPS[HH]['IncomingFiber'] = dict
+      //console.log('arr_fiber: ',arr_fiber)
+      hhFromPS[HH]['IncomingFiber'] = {[fibername]: ''}
+      for(let i= 0; i< arr_fiber.length; i++){
+        let temp_dict =[]
+        let fiberIN = arr_fiber[i]
+        let cable = fibername.split('_to_')
+        let cableIn = cable[0], HHTo = cable[1]
+        let destination = false, currentHH = HH
+        let value = fiberIN
+        while(destination == false){
+          temp_dict.push([value,cableIn,currentHH,HHTo])
+          let notfound = true
+          let arr
+          try{
+            arr = HH_Before[HHTo]['SpliceInfo'][`${cableIn}_to_${currentHH}`]
+            if(arr == undefined){
+              arr= []
+              destination = true
+            }
+          }
+          catch(error){
+            arr= []
+            destination = true
+          }
+          for(let j = 0; j < arr.length; j++){
+            let range = arr[j][0]
+            if(isInRange(value, range)){
+              // if(HH == 'NCL3-12-05-03-03-HH' && value == 27){
+              //   console.log('arr: ',arr)
+              // }
+              if(arr[j][2] == 'Cut' || arr[j][2] == 'Equipment'){
+                notfound = true
+              }
+              else if (arr[j][2] == 'Passthrough'){
+                value = value
+                currentHH = HHTo
+                cable = arr[j][1].split('_to_')
+                cableIn = cable[0]
+                HHTo = cable[1]
+                notfound = false
+              }
+              else{
+                value = pickNewValue(arr[j], value)
+                currentHH = HHTo
+                cable = arr[j][2].split('_to_')
+                cableIn = cable[0]
+                HHTo = cable[1]
+                notfound = false
+              }
+            }
+          }
+          if(notfound == true){
+            destination = true
+            //temp_dict.push([value,cableIn,HHTo])
+            if (!hhFromPS[HH]['IncomingFiber'][fibername]) {
+              hhFromPS[HH]['IncomingFiber'][fibername] = {};
+            }
+            hhFromPS[HH]['IncomingFiber'][fibername][fiberIN] = temp_dict;
+          }
+        }
+      }
     }
-    
-
   }
   console.log('hhFromPS: ',hhFromPS)
-  console.log('incomingFiberToPS: ',incomingFiberToPS)
   //highlight the wrong HH
   for(let i = 0; i< HHlayer.length; i++){
     if(failTracingHH.includes(HHlayer[i].properties.name)){

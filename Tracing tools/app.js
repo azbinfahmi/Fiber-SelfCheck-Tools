@@ -153,6 +153,34 @@ function AddNewLayer(event) {
                 }
             }
         }
+
+        //assign feature ID into incoming fiber from PS
+        function findLayerID(arr){
+            let HH = arr[2]
+            let cable = arr[1]
+            let fromHH = arr[3]
+        
+            let temp = HH_Before[HH]['Info']
+            for(let word in temp){
+              if(temp[word][0] == cable && temp[word][4] == fromHH){
+                return temp[word][5]
+              }
+              
+            }
+        }
+        for(let HH in hhFromPS){
+            for(let cable in hhFromPS[HH]['IncomingFiber']){
+                for(let fiberIn in hhFromPS[HH]['IncomingFiber'][cable]){
+                    let arr = hhFromPS[HH]['IncomingFiber'][cable][fiberIn]
+                    for(let i = 0; i < arr.length; i++){
+                        let temp = arr[i]
+                        layerID = findLayerID(temp)
+                        hhFromPS[HH]['IncomingFiber'][cable][fiberIn][i][4] = layerID
+                    }
+                }
+            }
+        }
+
     }
     if(HH_coordinate.length> 0){
         var newlayer = L.geoJSON(null, {
@@ -248,7 +276,6 @@ function AddNewLayer(event) {
     else{
         alert('Please Insert Splicing File first')
     }
-    
 
 }
 
