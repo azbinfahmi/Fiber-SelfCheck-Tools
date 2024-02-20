@@ -110,7 +110,7 @@ function StoreSplicingInfo(){
           }
         }
       }
-  
+      
       if(findIndex[findIndex.length] != arr.length){
         findIndex.push(arr.length)
       }
@@ -267,12 +267,34 @@ function StoreSplicingInfo(){
       return result;
     }
 
+    function extractNameFromPath(path) {
+      // Split the path by '/'
+      let parts = path.split('/');
+      
+      // Get the last part of the path
+      let fileName = parts[parts.length - 1];
+      
+      // Check if the last part contains a dot (.)
+      if (fileName.includes('.')) {
+          // If yes, consider the part before the last dot as the file name
+          return fileName.slice(0, fileName.lastIndexOf('.'));
+      } else {
+          // Otherwise, treat it as a directory and return the last part (file name)
+          return parts[parts.length - 1];
+      }
+    }
+
     let cableInfo ={}, checkHHname =[], nameHH = 1
     for (let key in workbook_arr) {
       let coord =[],storeDR = []
       if (workbook_arr.hasOwnProperty(key)) {
         const workbook = workbook_arr[key];
+        let key_name = extractNameFromPath(key)
+        key_name = key_name.replace(/_[0-9]+$/, '').split('_')
+        
+        key = key_name[key_name.length-1]
         key = key.replace(/_[0-9]+$/, '')
+        console.log('key: ',key)
         if(!checkHHname.includes(key)){
           checkHHname.push(key)
         }
@@ -286,7 +308,7 @@ function StoreSplicingInfo(){
         const totalCable = CheckCableAttach(workbook.SheetNames)
         workbook.SheetNames.forEach(sheetName => {
 
-          if(sheetName.includes('DR')){
+          if(sheetName.includes('DR') || sheetName.includes('Drop')){
             storeDR.push(sheetName)
           }
           else if(sheetName != "Equipment"){
@@ -396,11 +418,11 @@ function StoreSplicingInfo(){
                         fiber_IN = fiberVal
                       }
                       let check_cable = getCableOutfromInfo(key,cableVal)
-                      if(eqVal != "" && (cableVal == "" || check_cable.includes('DR'))){
+                      if(eqVal != "" && (cableVal == "" || check_cable.includes('DR') || check_cable.includes('Drop') )){ //
                         storeEQ.push(fiberVal, eqName)
                       }
                       else {
-                        if(!check_cable.includes('DR')){
+                        if(!check_cable.includes('DR') || check_cable.includes('Drop')){
                           storeEQ.push(fiber_IN , eqName, portVal, fVal, getCableOutfromInfo(key,cableVal))
                         }
                         else{
@@ -467,19 +489,18 @@ function StoreSplicingInfo(){
                       inputVal = ""
                       fOutVal =""
                     }
-
-                    //ni Secondary Splitter kalau dia no output
-                    if(fOutVal.includes('DR')){
+                    //ni Splitter kalau dia connect dengan drop
+                    if(fOutVal.includes('DR') || fOutVal.includes('Drop')){
                       if(cableInfo[key]['Drop'].includes(fOutVal)){
                         let drop = cableInfo[key]['Drop']
                         cableInfo[key]['Drop'] = drop.filter(value => value !== fOutVal)
                       }
-
                       fOutVal = ""
                     }
+                    //ni Secondary Splitter kalau dia no output
                     if(fOutVal == ""){
                       if(inputVal != ""){
-                        Eqconnect.push(inputVal,fInVal,eqVal.replace(/[^a-zA-Z0-9]/g, ''))
+                        Eqconnect.push(inputVal,fInVal,eqVal)
                       }
                     }
                     //ni untuk primary
@@ -490,7 +511,7 @@ function StoreSplicingInfo(){
                         checkEQVal = eqVal
                       }
                       if(checkEQVal == eqVal && eqVal.includes("◀")){
-                        Eqconnect.push(inputName,fiberInput,eqVal.replace(/[^a-zA-Z0-9]/g, ''),portVal,fVal,fOutVal)
+                        Eqconnect.push(inputName,fiberInput,eqVal,portVal,fVal,fOutVal)
                       }
                       
                     }
@@ -1003,9 +1024,18 @@ function AddHHintoMap(){
   
     //create HH into map
     HH_coordinate.forEach((feature, hh_index) => {
-      let description = '', eq_desc = ''
+      let description = '', eq_desc = '', new_name
       let arr_fibers = {}
       const name = feature[0]
+      new_name = name
+      if(name.includes('HH-')){
+        let arr1 = HH_Before[name]['Equipment']
+        for(let cable in arr1){
+          for(let fIN in arr1[cable]){
+            new_name = arr1[cable][fIN][0][0].replace(/\(\d+\)◀/, '')
+          }
+        }
+      }
       const lat = feature[1];
       const lon = feature[2];
 
@@ -1181,7 +1211,7 @@ function AddHHintoMap(){
       <div class="custom-popup">
           <div id="page1">
               <h2><strong>${name} : </strong> Splicing Information (simplified)</h2>
-              <strong>${name}</strong><br>
+              <strong>${new_name}</strong><br>
               ${labelDesc.join('')}
               ${arrKeys.join('<br>')}<br>
               ${new_desc.join('<br>')}<br>
@@ -1236,7 +1266,6 @@ function AddHHintoMap(){
 
       if(HH_Before[name]['Drop'].length>0){
         fillColor = '#666a6e'
-
       }
 
       geo_HHlayer = L.circleMarker([lat, lon], {
@@ -1556,6 +1585,13 @@ function TraceFiber(){
           color: 'white',
           fillColor: 'rgb(255, 128, 128)'
         })
+      }
+      if(HH_Before[HHlayer[i].properties.name]['Drop'].length > 0){
+        HHlayer[i].setStyle({
+          fillColor : '#666a6e'
+        })
+
+        
       }
       //update store color
       storeHHColor[i] = [HHlayer[i].properties.name, HHlayer[i].options.color, HHlayer[i].options.fillColor]

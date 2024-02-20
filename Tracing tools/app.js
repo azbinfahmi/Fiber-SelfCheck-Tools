@@ -207,7 +207,6 @@ function AddNewLayer(event) {
                 layer.bindPopup(popupContent);
     
                 // Add mouseover event listener to change color to yellow
-                
                 layer.on('mouseover', function (e) {
                     if(freeze == false){
                         this.setStyle({ color: 'yellow' });
