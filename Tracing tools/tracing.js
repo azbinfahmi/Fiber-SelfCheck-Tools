@@ -269,7 +269,7 @@ function StoreSplicingInfo(){
 
     let cableInfo ={}, checkHHname =[], nameHH = 1
     for (let key in workbook_arr) {
-      let coord =[]
+      let coord =[],storeDR = []
       if (workbook_arr.hasOwnProperty(key)) {
         const workbook = workbook_arr[key];
         key = key.replace(/_[0-9]+$/, '')
@@ -282,11 +282,14 @@ function StoreSplicingInfo(){
           key = `${key}_${nameHH}`
           duplicateHH.push(key)
           nameHH+=1
-          
         }
         const totalCable = CheckCableAttach(workbook.SheetNames)
         workbook.SheetNames.forEach(sheetName => {
-          if(sheetName != "Equipment"){
+
+          if(sheetName.includes('DR')){
+            storeDR.push(sheetName)
+          }
+          else if(sheetName != "Equipment"){
             let tempCable=[]
             let tempSpliceInfo_arr =[], storeEQ_arr = []
             const sheet = workbook.Sheets[sheetName];
@@ -306,14 +309,12 @@ function StoreSplicingInfo(){
                     })
                   }
                 }
-  
                 if( coord.length == 0 && HH_Before.length == 0){
                   if (cellValue.includes("Lat") && cellValue.includes("Lon")){
                     coord = extractCoordinates(cellValue)
                     HH_coordinate.push([key,coord[0],coord[1],''])
                   }
                 }
-                
               }
             }
             if (tempCable.length > 0){
@@ -329,7 +330,7 @@ function StoreSplicingInfo(){
                   eqFromCableSheet[key] = { 'EqInfo':{}, 'EqInfo_Edited':{}}
                 }
                 else{
-                  cableInfo[key] = { 'Info': {}, 'SpliceInfo': {}, 'Equipment': {}, 'coordinates': []};
+                  cableInfo[key] = { 'Info': {}, 'SpliceInfo': {}, 'Equipment': {}, 'coordinates': [], 'Drop':[]};
                   eqFromCableSheet[key] = { 'EqInfo':{}, 'EqInfo_Edited':{}}
                 }
                 
@@ -394,12 +395,16 @@ function StoreSplicingInfo(){
                         eqName = eqVal.replace(/[^a-zA-Z0-9]/g, '')
                         fiber_IN = fiberVal
                       }
-  
-                      if(eqVal != "" && cableVal == ""){
+                      let check_cable = getCableOutfromInfo(key,cableVal)
+                      if(eqVal != "" && (cableVal == "" || check_cable.includes('DR'))){
                         storeEQ.push(fiberVal, eqName)
                       }
                       else {
-                        storeEQ.push(fiber_IN , eqName, portVal, fVal, getCableOutfromInfo(key,cableVal))
+                        if(!check_cable.includes('DR')){
+                          storeEQ.push(fiber_IN , eqName, portVal, fVal, getCableOutfromInfo(key,cableVal))
+                        }
+                        else{
+                        }
                       }
                       //continue
                     }
@@ -422,12 +427,15 @@ function StoreSplicingInfo(){
             // Merge the new SpliceInfo values with existing ones
             Object.assign(cableInfo[key]['SpliceInfo'], dictSpliceInfo);
             Object.assign(eqFromCableSheet[key]['EqInfo'], EqInfo);
+            if(storeDR.length > 0){
+              Object.assign(cableInfo[key]['Drop'], storeDR);
+            }
           }
           else if(sheetName == "Equipment"){
             let Eqconnect
             const sheet = workbook.Sheets[sheetName];
             const maxrow = sheet['!ref'].match(/(\d+)$/)[1]
-            let inputName, Eqconnect_arr =[], fiberInput
+            let inputName, Eqconnect_arr =[], fiberInput, unusedDrop =[]
             //Equipment Connections.
             for(var cellref in sheet){
               if(cellref.match(/([A-Z]+)(\d+)/) != null){
@@ -459,7 +467,16 @@ function StoreSplicingInfo(){
                       inputVal = ""
                       fOutVal =""
                     }
+
                     //ni Secondary Splitter kalau dia no output
+                    if(fOutVal.includes('DR')){
+                      if(cableInfo[key]['Drop'].includes(fOutVal)){
+                        let drop = cableInfo[key]['Drop']
+                        cableInfo[key]['Drop'] = drop.filter(value => value !== fOutVal)
+                      }
+
+                      fOutVal = ""
+                    }
                     if(fOutVal == ""){
                       if(inputVal != ""){
                         Eqconnect.push(inputVal,fInVal,eqVal.replace(/[^a-zA-Z0-9]/g, ''))
@@ -492,6 +509,9 @@ function StoreSplicingInfo(){
         });
       }
     }
+    //console.log('cableInfo: ',cableInfo)
+    //console.log('eqFromCableSheet: ',eqFromCableSheet)
+
     //manipulate and organize the data
     let organizedEq, uniqueName, uniqueFiberIn
     for (let HH in cableInfo){
@@ -878,7 +898,7 @@ function AddHHintoMap(){
         }
         for(let fiberIn in arr){
           for(let i = 0; i < arr[fiberIn].length; i++){
-            if(arr[fiberIn][i].length == 5){
+            if(arr[fiberIn][i].length == 5 && arr[fiberIn][i][4] != undefined){
               //highlight fiber
               let leafletID = arr[fiberIn][i][4]
               let HH = arr[fiberIn][i][2]
@@ -959,6 +979,15 @@ function AddHHintoMap(){
           
         }
         
+      }
+
+      if(HH_Before[HHname]['Drop'].length> 0){
+        let prop = `${HH_Before[HHname]['Drop'].length} Drop are not Connect:\n`
+        for(let i = 0; i < HH_Before[HHname]['Drop'].length; i++){
+          prop += HH_Before[HHname]['Drop'][i] + `\n`
+        }
+
+        alert(`${prop}`)
       }
     }
 
@@ -1188,7 +1217,7 @@ function AddHHintoMap(){
 
       // Create circle marker
       let color = 'green'
-      let fillColor = 'rgb(144, 238, 144)'
+      let fillColor = 'rgb(144, 238, 144)' //lightgreen
 
       if(HHtoObserve[name]){
         color = 'blue'
@@ -1203,6 +1232,11 @@ function AddHHintoMap(){
       if(duplicateHH.includes(HH_coordinate[hh_index][0])){
         color = 'green'
         fillColor = 'purple'
+      }
+
+      if(HH_Before[name]['Drop'].length>0){
+        fillColor = '#666a6e'
+
       }
 
       geo_HHlayer = L.circleMarker([lat, lon], {
@@ -1393,7 +1427,8 @@ function TraceFiber(){
                       }
                     };
                   }
-                } else {
+                } 
+                else {
                     hhFromPS[HHTo] = {
                         [`${cableIn}_to_${currentHH}`]: {
                             [value]: HH
