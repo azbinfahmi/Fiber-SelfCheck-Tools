@@ -1,6 +1,6 @@
 let workbook_arr = {}, FileName=[], cableInfo ={}, HH_Before =[], HHlayer =[], hh_PS =[]
 HH_coordinate =[],eqFromCableSheet = {}, HHtoObserve = {}, hhFromPS = {}, storeHHColor = [],
-duplicateHH = [], showDuplicateHH = []
+duplicateHH = [], showDuplicateHH = [], legendItems =[]
 var freeze = false
 
 function handleZipFile_before() {
@@ -54,6 +54,8 @@ function handleZipFile_before() {
             console.log('HH_Before',HH_Before)
             AddHHintoMap()
             TraceFiber()
+            CreateLegend()
+            console.log('legendItems',legendItems)
   
             //console.log('HHlayer',HHlayer)
           })
@@ -1027,6 +1029,22 @@ function AddHHintoMap(){
         alert(`${prop}`)
       }
     }
+
+    //kalau desc tu exist
+    function itemExists(item, legendItems) {
+      // Loop through the legendItems array to check if the item exists
+      for (var i = 0; i < legendItems.length; i++) {
+          // Check if the current item in legendItems matches the item
+          if (legendItems[i][0] === item[0] &&
+              legendItems[i][1] === item[1] &&
+              legendItems[i][2] === item[2]) {
+              // If the item already exists, return true
+              return true;
+          }
+      }
+      // If the item does not exist, return false
+      return false;
+    }
     //find the duplicate name of HH
     let popup = ''
     if(showDuplicateHH.length > 0){
@@ -1036,7 +1054,7 @@ function AddHHintoMap(){
       console.log('duplicateHH: ',showDuplicateHH)
       alert("Please change this HH's name: \n" + popup)
     }
-  
+
     //create HH into map
     HH_coordinate.forEach((feature, hh_index) => {
       let description = '', eq_desc = '', new_name
@@ -1285,10 +1303,19 @@ function AddHHintoMap(){
       // Create circle marker
       let color = 'green'
       let fillColor = 'rgb(144, 238, 144)' //lightgreen
-
+      let desc = 'HH with Equipment'
+      let arr = [fillColor,color,desc]
+      if (!itemExists(arr, legendItems)) {
+          legendItems.push(newItem);
+      }
       if(HHtoObserve[name]){
         color = 'blue'
         fillColor = 'lightblue'
+        let desc = 'HH with Equipment'
+        let arr = [fillColor,color,desc]
+        if (!itemExists(arr, legendItems)) {
+            legendItems.push(newItem);
+        }
       }
       if(HH_coordinate[hh_index][3] == 'PS'){
         color = 'white'
@@ -1651,3 +1678,62 @@ function TraceFiber(){
   console.log('failTracingHH: ',failTracingHH)
   
 }
+
+function CreateLegend(){
+
+  // Initialize legendContent with the legend container opening tag
+  var legendContent = '<div class="legend">' +
+                    '<table id="legend-table">';
+
+  // Iterate over each item in the legendItems array
+  for (var i = 0; i < legendItems.length; i++) {
+    var item = legendItems[i];
+    // Add SVG for the circle with the specified fill and stroke colors
+    legendContent += '<tr>' +
+                        '<td>' +
+                            '<svg height="20" width="20">' +
+                                '<circle cx="10" cy="10" r="8" fill="' + item[0] + '" stroke="' + item[1] + '" stroke-width="2" />' +
+                            '</svg>' +
+                        '</td>' +
+                        // Add the legend label
+                        '<td>' + item[2] + '</td>' +
+                    '</tr>';
+  }
+
+  // Close the legend container
+  legendContent += '</table>' +
+                '</div>';
+  var legendControl = L.control({position: 'bottomright'});
+  // Define onAdd method for custom control
+  legendControl.onAdd = function (map) {
+    var div = L.DomUtil.create('div', 'info legend');
+    div.innerHTML = legendContent;
+    return div;
+  };
+  legendControl.addTo(map);
+
+  function toggleLegend() {
+    let legendHH = document.querySelector('.legend');
+    if (legendHH.style.display === 'none') {
+      // Show legend
+      legendHH.style.display = 'block';
+    } else {
+      // Hide legend
+      legendHH.style.display = 'none';
+    }
+  }
+  document.getElementById('toggleButton').addEventListener('click', toggleLegend);
+  let legendContainer = document.querySelector('.legend');
+
+  // Add mouseenter and mouseleave event listeners to the legend container
+  legendContainer.addEventListener('mouseenter', function() {
+    // Disable scroll wheel zoom on the map
+    map.scrollWheelZoom.disable();
+  });
+
+  legendContainer.addEventListener('mouseleave', function() {
+    // Re-enable scroll wheel zoom on the map
+    map.scrollWheelZoom.enable();
+  });
+}
+

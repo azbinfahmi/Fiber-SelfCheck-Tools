@@ -1307,8 +1307,8 @@ function HighlightWrongHH(checkError){
       return div;
     };
 
-// Add the control to the map
-legendControl.addTo(map);
+  // Add the control to the map
+  legendControl.addTo(map);
   }
 }
 
