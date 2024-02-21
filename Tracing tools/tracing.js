@@ -911,7 +911,7 @@ function AddHHintoMap(){
           }
         }
       }
-        //highlight incoming path from PS
+      //highlight incoming path from PS
       function HighlightFiberPath_FromPS(arr){
         freeze = true
         // Check if any fiber does not have same path
@@ -1027,7 +1027,6 @@ function AddHHintoMap(){
         alert(`${prop}`)
       }
     }
-
     //find the duplicate name of HH
     let popup = ''
     if(showDuplicateHH.length > 0){
@@ -1340,6 +1339,7 @@ function AddHHintoMap(){
     let zoomLevel = 15
     map.setView([lat, long], zoomLevel);
 }
+
 let failTracingHH = []
 function TraceFiber(){ 
   function extractFiberValuePS(arr){
