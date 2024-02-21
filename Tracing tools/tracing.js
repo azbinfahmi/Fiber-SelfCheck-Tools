@@ -741,11 +741,17 @@ function AddHHintoMap(){
       const splitNames = fiberName.split('_to_');
       let namecable = splitNames[0]
       let nameHH = splitNames[1]
-  
+      let countHH = 0
       let Info = HH_Before[HHName]['Info']
+      //nak cari HH tu ada berapa cable yang masuk kat dia
+      for(let words in Info){
+        if(nameHH == Info[words][4]){
+          countHH = countHH + 1
+        }
+      }
       for (let words in Info){
         if(namecable == Info[words][0] && nameHH == Info[words][4]){
-          return Info[words][3]
+          return [Info[words][3], countHH]
         }
       }
     }
@@ -770,14 +776,25 @@ function AddHHintoMap(){
           } else {
               if (start === end) {
                   let totalValue = end - start + 1
+                  if(arr[i][4] > 1){
+                    result.push(`In (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${newValue}`)
+                  }
+                  else{
+                    result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+                  }
                   //result.push(start.toString() + ' ' + sameValue);
                   // result.push(`IN (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
-                  result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-                } else {
+                } 
+                else {
                   let totalValue = end - start + 1
+                  if(arr[i][4] > 1){
+                    result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${newValue}`)
+                  }
+                  else{
+                    result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+                  }
                   //result.push(start.toString() + '-' + end.toString() + ' ' + sameValue);
                   // result.push(`IN (${start.toString()}-${end.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
-                  result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
                 }
               start = current;
               end = current;
@@ -807,19 +824,19 @@ function AddHHintoMap(){
       if(namecable.startsWith('LA') || namecable.startsWith('BB'))
       {
         return namecable
-        // if(namecable.startsWith('LA')){
-        //   return 'LA'
-        // }
-        // else{
-        //   return 'BB'
-        // }
       }
       else{
         const lastIndex = namecable.lastIndexOf('-');
         if (lastIndex !== -1 && lastIndex < namecable.length - 1) {
+          if(!namecable.substring(lastIndex + 1).includes('FOC')){
+            return namecable.substring(lastIndex - 3);
+          }
+          else{
             return namecable.substring(lastIndex + 1);
+          }
+          
         } else {
-            return namecable;
+          return namecable;
         }
       }
       
@@ -1050,8 +1067,9 @@ function AddHHintoMap(){
             continue
           }
           else{
-            let directionIn = findDirection(name,fibername)
-            let directionOut
+            let direction = findDirection(name,fibername)
+            let directionIn = direction[0]
+            let countIn = direction[1]
             let foc_in = extractFOC(fibername)
             let foc_out = extractFOC(arr[i][2])
 
@@ -1059,10 +1077,21 @@ function AddHHintoMap(){
               continue
             }
             else{
-              directionOut = findDirection(name,arr[i][2])
-              // labelDesc.push(`IN (${arr[i][1]}) ${foc_out}(${directionOut}) TO (${arr[i][0]}) ${foc_in}(${directionIn})<br>`)
-              labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)    
-              
+              let direction = findDirection(name,arr[i][2])
+              let directionOut = direction[0]
+              let countOut = direction[1]
+              if(countIn > 1 && countOut> 1){
+                labelDesc.push(`In ${foc_out}(${arr[i][1]})${directionOut} Out ${foc_in}(${arr[i][0]})${directionIn}<br>`)
+              }
+              else if(countIn > 1){
+                labelDesc.push(`In (${arr[i][1]}) (${directionOut}) Out ${foc_in}(${arr[i][0]})${directionIn}<br>`)
+              }
+              else if(countOut > 1){
+                labelDesc.push(`In ${foc_out}(${arr[i][1]})${directionOut} Out (${arr[i][0]})${directionIn}<br>`)
+              }
+              else{
+                labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)    
+              }              
             }
           }
         }
@@ -1070,18 +1099,20 @@ function AddHHintoMap(){
       //for equipment
       for(let fibername in HH_Before[name]['Equipment']){
         let direction = findDirection(name,fibername)
+        let directionIn = direction[0]
+        let countIn = direction[1]
         let keys = Object.keys(HH_Before[name]['Equipment'][fibername])
         let arr_check =[]
+
         for(let i = 0; i < keys.length; i++){
           if(HH_Before[name]['Equipment'][fibername][keys[i]][0].length === 4){
-            arr_check.push([keys[i],'PS', extractFOC(fibername), direction])
+            arr_check.push([keys[i],'PS', extractFOC(fibername), directionIn, countIn])
             HH_coordinate[hh_index][3] = 'PS'
           }
           else{
-            arr_check.push([keys[i],'DTS', extractFOC(fibername), direction])
+            arr_check.push([keys[i],'DTS', extractFOC(fibername), directionIn, countIn])
             arrDTS.push([keys[i],fibername])
           }
-  
           for(let j = 0; j <HH_Before[name]['Equipment'][fibername][keys[i]].length; j++ ){
             let inc
             let arr = HH_Before[name]['Equipment'][fibername][keys[i]][j]
@@ -1104,16 +1135,21 @@ function AddHHintoMap(){
                 let val1 = Number(parts[0]) + inc
                 PortRange = `${val1}`
               }
-              let direction = findDirection(name,arr[3])
-              let foc_out = extractFOC(arr[3])
+              let direction = findDirection(name,arr[3])              
               if(direction == undefined){
-                //new_desc.push(`In (Port ${PortRange}) Out DTS`)
                 new_desc.push(`In (Port ${PortRange}) Out Secondary Splitter`)
               }
               else{
-                // new_desc.push(`In (Port ${PortRange}) Out (${arr[2]}) ${foc_out}(${direction})`)
-                new_desc.push(`In (Port ${PortRange}) Out (${arr[2]}) ${direction}`)
+                let directionOut = direction[0]
+                let countOut = direction[1]
+                let foc_out = extractFOC(arr[3])
 
+                if(countOut> 1){
+                  new_desc.push(`In (Port ${PortRange}) Out ${foc_out}(${arr[2]})${directionOut}`)
+                }
+                else{
+                  new_desc.push(`In (Port ${PortRange}) Out (${arr[2]}) ${directionOut}`)
+                }
               }
             }       
           }
@@ -1206,14 +1242,16 @@ function AddHHintoMap(){
           `
         }
       }
-  
+      // console.log('labelDesc: ',labelDesc)//ni cable splicing
+      // console.log('arrKeys: ',arrKeys)//ni cable yang masuk ke eq
+      // console.log('new_desc: ',new_desc)//ni port
       let popupContent = `
       <div class="custom-popup">
           <div id="page1">
               <h2><strong>${name} : </strong> Splicing Information (simplified)</h2>
               <strong>${new_name}</strong><br>
               ${labelDesc.join('')}
-              ${arrKeys.join('<br>')}<br>
+              ${arrKeys.join('<br>')}<br> 
               ${new_desc.join('<br>')}<br>
           </div>
   
@@ -1302,7 +1340,6 @@ function AddHHintoMap(){
     let zoomLevel = 15
     map.setView([lat, long], zoomLevel);
 }
-
 let failTracingHH = []
 function TraceFiber(){ 
   function extractFiberValuePS(arr){
@@ -1361,7 +1398,6 @@ function TraceFiber(){
       index_2++
     }
   }
-  
   //console.log('hh_PS: ',hh_PS)
   console.log('HHtoObserve: ',HHtoObserve)
 
@@ -1378,7 +1414,6 @@ function TraceFiber(){
     }
     HH_Before[HHname]['PS'] = fiber_cableOut
   }
-
   //now lets the game begin (find end HH for each HH that has DTS)
   for(let HH in HHtoObserve){
     let temp_fail =[]
