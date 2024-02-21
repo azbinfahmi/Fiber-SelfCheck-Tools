@@ -294,7 +294,6 @@ function StoreSplicingInfo(){
         
         key = key_name[key_name.length-1]
         key = key.replace(/_[0-9]+$/, '')
-        console.log('key: ',key)
         if(!checkHHname.includes(key)){
           checkHHname.push(key)
         }
@@ -1028,6 +1027,7 @@ function AddHHintoMap(){
       let arr_fibers = {}
       const name = feature[0]
       new_name = name
+      //tukaq nama kalau nama hh guna ID (ni berguna kalau untuk job yang echo buat)
       if(name.includes('HH-')){
         let arr1 = HH_Before[name]['Equipment']
         for(let cable in arr1){
@@ -1339,6 +1339,7 @@ function TraceFiber(){
     }
     return false
   }
+  //cari fiber yang splicing
   function pickNewValue(arr, value){
     range1 = arr[0].split('-')
     range2 = arr[1].split('-')
@@ -1404,16 +1405,12 @@ function TraceFiber(){
           arr= []
           destination = true
         }
-        //console.log('HH: ',HH)
-        //console.log('arr: ',arr)
         for(let j = 0; j < arr.length; j++){
           let range = arr[j][0]
           if(isInRange(value, range)){
-            // if(HH == 'NCL3-12-05-03-03-HH' && value == 27){
-            //   console.log('arr: ',arr)
-            // }
             if(arr[j][2] == 'Cut' || arr[j][2] == 'Equipment'){
               notfound = true
+              break;
             }
             else if (arr[j][2] == 'Passthrough'){
               value = value
@@ -1422,6 +1419,7 @@ function TraceFiber(){
               cableIn = cable[0]
               HHTo = cable[1]
               notfound = false
+              break;
             }
             else{
               value = pickNewValue(arr[j], value)
@@ -1430,9 +1428,11 @@ function TraceFiber(){
               cableIn = cable[0]
               HHTo = cable[1]
               notfound = false
+              break;
             }
           }
         }
+
         if(notfound == true){
           if(hh_PS.includes(HHTo)){
             let arr_2 = HH_Before[HHTo]['PS']
@@ -1511,11 +1511,19 @@ function TraceFiber(){
         let cableIn = cable[0], HHTo = cable[1]
         let destination = false, currentHH = HH
         let value = fiberIN
+
         while(destination == false){
           temp_dict.push([value,cableIn,currentHH,HHTo])
           let notfound = true
           let arr
           try{
+            // if(HH == 'FWB2-08-02-04-01-HH'){
+            //   console.log('HHTo: ',HHTo)
+            //   console.log('cableIn: ',cableIn)
+            //   console.log('currentHH: ',currentHH)
+            //   console.log('value: ',value)
+            // }
+
             arr = HH_Before[HHTo]['SpliceInfo'][`${cableIn}_to_${currentHH}`]
             if(arr == undefined){
               arr= []
@@ -1529,11 +1537,16 @@ function TraceFiber(){
           for(let j = 0; j < arr.length; j++){
             let range = arr[j][0]
             if(isInRange(value, range)){
-              // if(HH == 'NCL3-12-05-03-03-HH' && value == 27){
-              //   console.log('arr: ',arr)
+              // if(HH == 'FWB2-08-02-04-01-HH'){
+              //   console.log('currentHH: ',currentHH)
+              //   console.log('HHTo: ',HHTo)
+              //   console.log('arr full: ',arr)
+              //   console.log('arr[j]: ',arr[j])
+              //   console.log('value: ',value)
               // }
               if(arr[j][2] == 'Cut' || arr[j][2] == 'Equipment'){
                 notfound = true
+                break;
               }
               else if (arr[j][2] == 'Passthrough'){
                 value = value
@@ -1542,6 +1555,7 @@ function TraceFiber(){
                 cableIn = cable[0]
                 HHTo = cable[1]
                 notfound = false
+                break;
               }
               else{
                 value = pickNewValue(arr[j], value)
@@ -1550,9 +1564,13 @@ function TraceFiber(){
                 cableIn = cable[0]
                 HHTo = cable[1]
                 notfound = false
+                break;
               }
             }
           }
+          // if(HH == 'FWB2-08-01-01-06-HH'){
+          //   console.log('value yang berubah: ',value)
+          // }
           if(notfound == true){
             destination = true
             //temp_dict.push([value,cableIn,HHTo])
@@ -1573,13 +1591,11 @@ function TraceFiber(){
         color: 'red',
         fillColor: 'rgb(255, 128, 128)'
       })
-      
       if(duplicateHH.includes(HHlayer[i].properties.name)){
         HHlayer[i].setStyle({
           fillColor: 'purple',
         })
       }
-
       if(hh_PS.includes(HHlayer[i].properties.name)){
         HHlayer[i].setStyle({
           color: 'white',
@@ -1590,7 +1606,6 @@ function TraceFiber(){
         HHlayer[i].setStyle({
           fillColor : '#666a6e'
         })
-
         
       }
       //update store color
