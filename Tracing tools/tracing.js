@@ -1182,7 +1182,7 @@ function AddHHintoMap(){
       }
       //SplicingInfo
       for(let fibername in HH_Before[name]['SpliceInfo']){
-        arr = HH_Before[name]['SpliceInfo'][fibername]
+        let arr = HH_Before[name]['SpliceInfo'][fibername]
         description += '<strong>' + fibername + '</strong>'
         temp_arrfibers2 =[]
         for(let desc in arr){
@@ -1306,7 +1306,7 @@ function AddHHintoMap(){
       let desc = 'HH with Equipment'
       let arr = [fillColor,color,desc]
       if (!itemExists(arr, legendItems)) {
-          legendItems.push(newItem);
+          legendItems.push(arr);
       }
       if(HHtoObserve[name]){
         color = 'blue'
@@ -1314,7 +1314,7 @@ function AddHHintoMap(){
         let desc = 'HH with Equipment'
         let arr = [fillColor,color,desc]
         if (!itemExists(arr, legendItems)) {
-            legendItems.push(newItem);
+            legendItems.push(arr);
         }
       }
       if(HH_coordinate[hh_index][3] == 'PS'){
