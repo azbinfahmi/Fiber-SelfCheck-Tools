@@ -2,10 +2,8 @@
     background-color: rgba(162, 180, 196, 0.445);
     border-radius: 10px;
     z-index: 1000;
-    display: none;
-    /* padding: 100px;  */
+    display: block;
     transition: opacity 1s;
-    /* padding: 10px; */
     max-height: 150px; /* Set maximum height */
     overflow-y: auto; /* Enable vertical scrolling */
     bottom: 30px;
@@ -21,7 +19,7 @@
     border: 1px solid #ccc;
     border-radius: 5px;
     cursor: pointer;
-    display: none;
+    display: block;
   }
 
   
