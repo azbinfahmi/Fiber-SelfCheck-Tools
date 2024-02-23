@@ -674,6 +674,7 @@ function StoreSplicingInfo(){
     }
     //compare cableinfo and eqFromCableSheet
     for(let HH in cableInfo){
+      // console.log(HH)
       for(let cablename in cableInfo[HH]['Equipment']){
         let arr1 = cableInfo[HH]['Equipment'][cablename], newFibername
         for(let fiberin in arr1){
@@ -684,10 +685,16 @@ function StoreSplicingInfo(){
               if(fiberin2 === fiberin && name[0]==cablename){
                 newFibername = cablename1
                 for(let i = 0; i < arr1[fiberin].length; i++){
-                  //console.log('arr2: ',arr2, '\nfiberin: ',fiberin, '\narr1: ',arr1, '\nHH: ',HH)
-                  if(arr2[fiberin2][i][3] != '' && arr2[fiberin2][i].length == 4){
-                    cableInfo[HH]['Equipment'][cablename][fiberin][i][3] =  arr2[fiberin2][i][3]
+                  // if(HH == 'CRV3-02-04-02-02-HH'){
+                  //   console.log('arr2: ',arr2, '\nfiberin: ',fiberin, '\narr1: ',arr1, '\nHH: ',HH)
+                  //   console.log('arr2[fiberin2][i]',arr2[fiberin2][i])
+                  // } 
+                  if(arr2[fiberin2][i] != undefined){
+                    if(arr2[fiberin2][i][3] != '' && arr2[fiberin2][i].length == 4){
+                      cableInfo[HH]['Equipment'][cablename][fiberin][i][3] =  arr2[fiberin2][i][3]
+                    }
                   }
+                  
                 }
               }
             }
@@ -1573,6 +1580,15 @@ function TraceFiber(){
       HHtoObserve[HH]['Fail'] = temp_fail
     }
   }
+  //store HH if primary doesnt exist in HHfromPS
+  for(let i = 0; i < hh_PS.length; i++){
+    const keys = Object.keys(hhFromPS);
+    if(!keys.includes(hh_PS[i])){
+      hhFromPS[hh_PS[i]] ={}
+
+    }
+  }
+  console.log('hh_PS: ',hh_PS)
   //Find end HH for incoming fiber in PS
   for(let HH in hhFromPS){
     let arr = HH_Before[HH]['Equipment']
