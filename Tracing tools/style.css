@@ -22,4 +22,20 @@
     display: block;
   }
 
+  .container {
+    position: absolute;
+    display: none;
+    top: 100px;
+    left: 10px;
+    width: max-content;
+    max-width: max-content;
+    height: 50%;
+    overflow-y: auto; 
+    background-color: #f0f0f031;
+    padding: 20px;
+    z-index: 1001;
+    color: white; 
+}
+  
+
   

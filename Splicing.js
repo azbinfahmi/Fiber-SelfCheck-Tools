@@ -296,15 +296,38 @@ function StoreSplicingInfo(){
     }
     return `${arr[0]}_to_${arr[4]}`
   }
+  function extractNameFromPath(path) {
+    // Split the path by '/'
+    let parts = path.split('/');
+    
+    // Get the last part of the path
+    let fileName = parts[parts.length - 1];
+    
+    // Check if the last part contains a dot (.)
+    if (fileName.includes('.')) {
+        // If yes, consider the part before the last dot as the file name
+        return fileName.slice(0, fileName.lastIndexOf('.'));
+    } else {
+        // Otherwise, treat it as a directory and return the last part (file name)
+        return parts[parts.length - 1];
+    }
+  }
+
   let cableInfo ={}
   for (let key in workbook_arr) {
     let coord =[]
     if (workbook_arr.hasOwnProperty(key)) {
       const workbook = workbook_arr[key];
+      let key_name = extractNameFromPath(key)
+      key_name = key_name.replace(/_[0-9]+$/, '').split('_')
       key = key.replace(/_[0-9]+$/, '')
+      key = key_name[key_name.length-1].replace(/_[0-9]+$/, '')
       const totalCable = CheckCableAttach(workbook.SheetNames)
       workbook.SheetNames.forEach(sheetName => {
-        if(sheetName != "Equipment"){
+        if(sheetName.includes('DR') || sheetName.includes('Drop')){
+          //do nothing or skip drop file
+        }
+        else if(sheetName != "Equipment"){
           let tempCable=[]
           let tempSpliceInfo_arr =[], storeEQ_arr = []
           const sheet = workbook.Sheets[sheetName];
@@ -412,12 +435,14 @@ function StoreSplicingInfo(){
                       eqName = eqVal.replace(/[^a-zA-Z0-9]/g, '')
                       fiber_IN = fiberVal
                     }
-
-                    if(eqVal != "" && cableVal == ""){
+                    let check_cable = getCableOutfromInfo(key,cableVal)
+                    if(eqVal != "" && (cableVal == "" || check_cable.includes('DR') || check_cable.includes('Drop') )){
                       storeEQ.push(fiberVal, eqName)
                     }
                     else {
-                      storeEQ.push(fiber_IN , eqName, portVal, fVal, getCableOutfromInfo(key,cableVal))
+                      if(!check_cable.includes('DR') || check_cable.includes('Drop')){
+                        storeEQ.push(fiber_IN , eqName, portVal, fVal, getCableOutfromInfo(key,cableVal))
+                      }                    
                     }
                     //continue
                   }
@@ -479,6 +504,10 @@ function StoreSplicingInfo(){
                     fOutVal =""
                   }
                   //ni Secondary Splitter kalau dia no output
+                  if(fOutVal.includes('DR') || fOutVal.includes('Drop')){
+                    fOutVal = ""
+                  }
+
                   if(fOutVal == ""){
                     if(inputVal != ""){
                       Eqconnect.push(inputVal,fInVal,eqVal.replace(/[^a-zA-Z0-9]/g, ''))
@@ -670,7 +699,6 @@ function StoreSplicingInfo(){
       //Object.assign(cableInfo[HH]['SpliceInfo'][FiberName], eqInfo);
     }
   }
-
   return cableInfo
 }
 
@@ -684,7 +712,7 @@ function AddHHintoMap(){
         var titleMatch = section.match(/(.*?)<\/strong>/);
         var title = titleMatch ? titleMatch[1].trim() : '';
         // Extract rows
-        var tableHTML = '<table border="1" style="position: relative;"><caption>' + title + ':</caption><thead><tr><td>fiberIn</td><td>fiberOut</td><td>cableOut</td></tr></thead><tbody>';
+        var tableHTML = '<table class= "fiberTable" border="1" style="position: relative;"><caption>' + title + ':</caption><thead><tr><td>fiberIn</td><td>fiberOut</td><td>cableOut</td></tr></thead><tbody>';
         rows = arr_fibers[title]
 
         for(let i = 0; i < rows.length; i++){
@@ -802,7 +830,7 @@ function AddHHintoMap(){
     for(let i = 0; i< duplicateHH.length; i++){
       popup += `${duplicateHH[i]}\n`
     }
-    alert("Please change this HH's name: \n" + popup)
+    alert("Duplicate HH's name: \n" + popup)
   }
 
   //create HH into map
@@ -899,32 +927,45 @@ function AddHHintoMap(){
       // console.log('new_desc: ',new_desc)
       // console.log('arrKeys: ',arrKeys)
     }
-    
     //SplicingInfo
     for(let fibername in HH_Before[name]['SpliceInfo']){
+      let Fname = fibername.split('_to_')
+      let fname = Fname[0]
+      let dir = findDirection(name,fibername)
       arr = HH_Before[name]['SpliceInfo'][fibername]
-      description += '<strong>' + fibername + '</strong>'
       temp_arrfibers2 =[]
       for(let desc in arr){
         temp_arrfibers =[]
         for(let i = 0; i < arr[desc].length; i++){
-          temp_arrfibers.push(arr[desc][i])
+          let newFname = arr[desc][i].split('_to_')
+          if(newFname.length == 2){
+            let a = newFname[0]
+            let dir = findDirection(name,arr[desc][i])
+            temp_arrfibers.push(`${a}(${dir[0]})`)
+          }
+          else{
+            temp_arrfibers.push(arr[desc][i])
+          }
         }
         temp_arrfibers2.push(temp_arrfibers)
       }
+      fibername = `${fname}(${dir[0]})`
+      description += '<strong>' + fibername + '</strong>'
       arr_fibers[fibername] = temp_arrfibers2
     }
     let new_description = convertToTable(description,arr_fibers)
     //Equipment
     for(let fibername in HH_Before[name]['Equipment']){
-      eq_desc += '<strong> Cable In:' + fibername + '</strong><br>'
+      let Fname = fibername.split('_to_')
+      let fname = Fname[0]
+      let dir = findDirection(name,fibername)
+      eq_desc += '<strong> Cable In:' + `${fname}(${dir[0]})` + '</strong><br>'
       for(let fiberIn in HH_Before[name]['Equipment'][fibername]){
         let arr = HH_Before[name]['Equipment'][fibername][fiberIn]
 
         //console.log('nameHH', name ,'\narr',arr)
         if(arr[0].length > 1){
-          //eq_desc += `Primary Splitter <br> Fiber In: ${fiberIn} <br>`
-          eq_desc += `<table border="1" style = "position: relative;"><thead>
+          eq_desc += `<table class= "fiberTable" border="1" style = "position: relative;"><thead>
           <tr>
           <td>Fiber In</td>
           <td>Equipment</td>
@@ -935,8 +976,7 @@ function AddHHintoMap(){
           <tbody>`
         }
         else{
-          //eq_desc += `Secondary Splitter <br>`
-          eq_desc += `<table border="1" style = "position: relative;"><thead>
+          eq_desc += `<table class= "fiberTable" border="1" style = "position: relative;"><thead>
           <tr>
           <td>Fiber In</td>
           <td>Equipment</td>
@@ -952,13 +992,21 @@ function AddHHintoMap(){
             </tr>`
           }
           else{
+            let Fname = arr[i][3].split('_to_')
+            let newFiberName = arr[i][3]
+            if(Fname.length==2){
+              let fname = Fname[0]
+              let dir = findDirection(name,arr[i][3])
+              newFiberName = `${fname}(${dir[0]})`
+            }
+            
             if(i == 0){
               eq_desc +=`<tr>
               <td>${fiberIn}</td>
               <td>${arr[i][0]}</td>
               <td>${arr[i][1]}</td>
               <td>${arr[i][2]}</td>
-              <td>${arr[i][3]}</td>
+              <td>${newFiberName}</td>
               </tr>`
             }
             else{
@@ -967,7 +1015,7 @@ function AddHHintoMap(){
               <td>${arr[i][0]}</td>
               <td>${arr[i][1]}</td>
               <td>${arr[i][2]}</td>
-              <td>${arr[i][3]}</td>
+              <td>${newFiberName}</td>
               </tr>`
             }
             
@@ -1016,7 +1064,6 @@ function AddHHintoMap(){
           }
       </style>
     `;
-
     document.head.innerHTML += additionalStyles;
     // Create circle marker
     let color = 'blue'
@@ -1029,6 +1076,7 @@ function AddHHintoMap(){
       color = 'purple'
       fillColor = 'purple'
     }
+
     geo_HHlayer = L.circleMarker([lat, lon], {
       radius: 8,
       color: color,
@@ -1036,6 +1084,11 @@ function AddHHintoMap(){
       fillOpacity: 1
     });
 
+    geo_HHlayer.properties = {
+      name: name,
+      lat: lat,
+      long:lon
+    };
     // Create a popup with the feature name
     geo_HHlayer.bindPopup(popupContent);
 
@@ -1044,8 +1097,13 @@ function AddHHintoMap(){
         this.openPopup();
     });
     geo_HHlayer.addTo(map)
-    HHlayer.push(geo_HHlayer)
   })
+  
+    HHlayer.push(geo_HHlayer)
+    let lat = HH_coordinate[0][1]
+    let long = HH_coordinate[0][2]
+    let zoomLevel = 15
+    map.setView([lat, long], zoomLevel);
   
 }
 

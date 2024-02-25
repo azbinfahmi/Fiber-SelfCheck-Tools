@@ -236,6 +236,8 @@ function AddNewLayer(event) {
                             fillOpacity: 1
                         })
                     }
+                    let container = document.querySelector('.container');
+                    container.style.display = 'none'
                 });
             }
         }).addTo(map);

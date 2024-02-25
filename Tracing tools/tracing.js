@@ -309,9 +309,7 @@ function StoreSplicingInfo(){
         const workbook = workbook_arr[key];
         let key_name = extractNameFromPath(key)
         key_name = key_name.replace(/_[0-9]+$/, '').split('_')
-        
-        key = key_name[key_name.length-1]
-        key = key.replace(/_[0-9]+$/, '')
+        key = key_name[key_name.length-1].replace(/_[0-9]+$/, '')
         if(!checkHHname.includes(key)){
           checkHHname.push(key)
         }
@@ -507,7 +505,7 @@ function StoreSplicingInfo(){
                       inputVal = ""
                       fOutVal =""
                     }
-                    //ni Splitter kalau dia connect dengan drop
+                    //ni Secondary Splitter kalau dia connect dengan drop
                     if(fOutVal.includes('DR') || fOutVal.includes('Drop')){
                       if(cableInfo[key]['Drop'].includes(fOutVal)){
                         let drop = cableInfo[key]['Drop']
@@ -533,7 +531,6 @@ function StoreSplicingInfo(){
                       if(checkEQVal == eqVal && eqVal.includes("◀")){
                         Eqconnect.push(inputName,fiberInput,eqVal,portVal,fVal,fOutVal)
                       }
-                      
                     }
                     if(Eqconnect.length>0){
                       Eqconnect_arr.push(Eqconnect.flat())
@@ -676,7 +673,7 @@ function StoreSplicingInfo(){
     for(let HH in cableInfo){
       // console.log(HH)
       for(let cablename in cableInfo[HH]['Equipment']){
-        let arr1 = cableInfo[HH]['Equipment'][cablename], newFibername
+        let arr1 = cableInfo[HH]['Equipment'][cablename], newFibername,newFibername_old
         for(let fiberin in arr1){
           for(let cablename1 in eqFromCableSheet[HH]['EqInfo_Edited']){
             let name = cablename1.split('_to_')
@@ -685,21 +682,29 @@ function StoreSplicingInfo(){
               if(fiberin2 === fiberin && name[0]==cablename){
                 newFibername = cablename1
                 for(let i = 0; i < arr1[fiberin].length; i++){
-                  // if(HH == 'CRV3-02-04-02-02-HH'){
-                  //   console.log('arr2: ',arr2, '\nfiberin: ',fiberin, '\narr1: ',arr1, '\nHH: ',HH)
-                  //   console.log('arr2[fiberin2][i]',arr2[fiberin2][i])
-                  // } 
+                  if(HH == 'HH-00002251'){
+                    console.log('cablename: ',cablename1)
+                    console.log('arr2: ',arr2, '\nfiberin: ',fiberin, '\narr1: ',arr1, '\nHH: ',HH)
+                    console.log('arr1[fiberin2][i]',arr1[fiberin2][i])
+                    console.log('arr2[fiberin2][i]',arr2[fiberin2][i])
+                  } 
                   if(arr2[fiberin2][i] != undefined){
-                    if(arr2[fiberin2][i][3] != '' && arr2[fiberin2][i].length == 4){
-                      cableInfo[HH]['Equipment'][cablename][fiberin][i][3] =  arr2[fiberin2][i][3]
+                    if(arr2[fiberin2][i][3] != '' && arr2[fiberin2][i].length == 4 ){
+                      if(arr2[fiberin2][i][1] == arr1[fiberin2][i][1] && arr2[fiberin2][i][2] == arr1[fiberin2][i][2]){
+                        cableInfo[HH]['Equipment'][cablename][fiberin][i][3] =  arr2[fiberin2][i][3]
+                        newFibername_old = cablename1
+                      }
+                      else{
+                        newFibername = newFibername_old
+                      }
                     }
                   }
-                  
                 }
               }
             }
           }
         }
+        //console.log('newFibername: ',newFibername)
         cableInfo[HH]['Equipment'][newFibername] = cableInfo[HH]['Equipment'][cablename]
         delete cableInfo[HH]['Equipment'][cablename]
       }
@@ -745,13 +750,12 @@ function StoreSplicingInfo(){
 function AddHHintoMap(){
     function convertToTable(description, arr_fibers) {
       var sections = description.split('<strong>').slice(1);
-  
       var tablesHTML = sections.map(function (section) {
           // Extract title
           var titleMatch = section.match(/(.*?)<\/strong>/);
           var title = titleMatch ? titleMatch[1].trim() : '';
           // Extract rows
-          var tableHTML = '<table border="1" style="position: relative;"><caption>' + title + ':</caption><thead><tr><td>fiberIn</td><td>fiberOut</td><td>cableOut</td></tr></thead><tbody>';
+          var tableHTML = '<table class="fiberTable" border="1" style="position: relative;"><caption>' + title + ':</caption><thead><tr><td>fiberIn</td><td>fiberOut</td><td>cableOut</td></tr></thead><tbody>';
           rows = arr_fibers[title]
   
           for(let i = 0; i < rows.length; i++){
@@ -943,7 +947,6 @@ function AddHHintoMap(){
       function HighlightFiberPath_FromPS(arr){
         freeze = true
         // Check if any fiber does not have same path
-        // Check if any fiber does not have same path
         let filteredArrays = Object.entries(arr).filter(([key]) => key !== 'DTS' && key !== 'Fail');
         let lengths = filteredArrays.map(([_, array]) => array.reduce((acc, cur) => acc + cur.length, 0));
         let uniqueLengths = new Set(lengths);
@@ -968,13 +971,13 @@ function AddHHintoMap(){
               let leafletID = arr[fiberIn][i][4]
               let HH = arr[fiberIn][i][2]
               Layers[0]._layers[leafletID].setStyle({
-                color: '#40E0D0',
+                color: 'Magenta',
               })
               //highlight HH
               for(let j = 0; j<storeHHColor.length;j++){
                 if(storeHHColor[j][0] == HH){
                   HHlayer[j].setStyle({
-                    fillColor: '#40E0D0',
+                    fillColor: 'Magenta',
                     fillOpacity: 0.9,
                   })
                   break;
@@ -1015,13 +1018,11 @@ function AddHHintoMap(){
           })
         //HHlayer[i].options.color = 'red'
       }
-      
       let arr = HHtoObserve[HHname]
       if(arr!= undefined){
         console.log('arr',arr)
         highlightFiberandHH(arr)
       }
-      
       let arr_PS = hhFromPS[HHname]
       if(arr_PS != undefined){
         freeze = true
@@ -1038,24 +1039,21 @@ function AddHHintoMap(){
             for(let fiberIn in arr_PS[fibername]){
               let HH = arr_PS[fibername][fiberIn]
               let highlightArr = HHtoObserve[HH]
-              highlightFiberandHH(highlightArr)
+              if(highlightArr != undefined){
+                highlightFiberandHH(highlightArr)
+              }
             }
           }
-          
         }
-        
       }
-
       if(HH_Before[HHname]['Drop'].length> 0){
         let prop = `${HH_Before[HHname]['Drop'].length} Drop are not Connect:\n`
         for(let i = 0; i < HH_Before[HHname]['Drop'].length; i++){
           prop += HH_Before[HHname]['Drop'][i] + `\n`
         }
-
         alert(`${prop}`)
       }
     }
-
     //find the duplicate name of HH
     let popup = ''
     if(showDuplicateHH.length > 0){
@@ -1063,9 +1061,8 @@ function AddHHintoMap(){
         popup += `${showDuplicateHH[i]}\n`
       }
       console.log('duplicateHH: ',showDuplicateHH)
-      alert("Please change this HH's name: \n" + popup)
+      alert("Duplicate HH: \n" + popup)
     }
-
     //create HH into map
     HH_coordinate.forEach((feature, hh_index) => {
       let description = '', eq_desc = '', new_name
@@ -1193,29 +1190,44 @@ function AddHHintoMap(){
       }
       //SplicingInfo
       for(let fibername in HH_Before[name]['SpliceInfo']){
+        let Fname = fibername.split('_to_')
+        let fname = Fname[0]
+        let dir = findDirection(name,fibername)
         let arr = HH_Before[name]['SpliceInfo'][fibername]
-        description += '<strong>' + fibername + '</strong>'
         temp_arrfibers2 =[]
         for(let desc in arr){
           temp_arrfibers =[]
           for(let i = 0; i < arr[desc].length; i++){
-            temp_arrfibers.push(arr[desc][i])
+            let newFname = arr[desc][i].split('_to_')
+            if(newFname.length == 2){
+              let a = newFname[0]
+              let dir = findDirection(name,arr[desc][i])
+              temp_arrfibers.push(`${a}(${dir[0]})`)
+            }
+            else{
+              temp_arrfibers.push(arr[desc][i])
+            }
           }
           temp_arrfibers2.push(temp_arrfibers)
         }
+        fibername = `${fname}(${dir[0]})`
+        description += '<strong>' + fibername + '</strong>'
         arr_fibers[fibername] = temp_arrfibers2
       }
       let new_description = convertToTable(description,arr_fibers)
       //Equipment
       for(let fibername in HH_Before[name]['Equipment']){
-        eq_desc += '<strong> Cable In:' + fibername + '</strong><br>'
+        let Fname = fibername.split('_to_')
+        let fname = Fname[0]
+        let dir = findDirection(name,fibername)
+        eq_desc += '<strong> Cable In:' + `${fname}(${dir[0]})` + '</strong><br>'
         for(let fiberIn in HH_Before[name]['Equipment'][fibername]){
           let arr = HH_Before[name]['Equipment'][fibername][fiberIn]
   
           //console.log('nameHH', name ,'\narr',arr)
           if(arr[0].length > 1){
             //eq_desc += `Primary Splitter <br> Fiber In: ${fiberIn} <br>`
-            eq_desc += `<table border="1" style = "position: relative;"><thead>
+            eq_desc += `<table class= "fiberTable" border="1" style = "position: relative;"><thead>
             <tr>
             <td>Fiber In</td>
             <td>Equipment</td>
@@ -1227,7 +1239,7 @@ function AddHHintoMap(){
           }
           else{
             //eq_desc += `Secondary Splitter <br>`
-            eq_desc += `<table border="1" style = "position: relative;"><thead>
+            eq_desc += `<table class= "fiberTable" border="1" style = "position: relative;"><thead>
             <tr>
             <td>Fiber In</td>
             <td>Equipment</td>
@@ -1243,13 +1255,21 @@ function AddHHintoMap(){
               </tr>`
             }
             else{
+              let Fname = arr[i][3].split('_to_')
+              let newFiberName = arr[i][3]
+              if(Fname.length==2){
+                let fname = Fname[0]
+                let dir = findDirection(name,arr[i][3])
+                newFiberName = `${fname}(${dir[0]})`
+              }
+             
               if(i == 0){
                 eq_desc +=`<tr>
                 <td>${fiberIn}</td>
                 <td>${arr[i][0]}</td>
                 <td>${arr[i][1]}</td>
                 <td>${arr[i][2]}</td>
-                <td>${arr[i][3]}</td>
+                <td>${newFiberName}</td>
                 </tr>`
               }
               else{
@@ -1258,7 +1278,7 @@ function AddHHintoMap(){
                 <td>${arr[i][0]}</td>
                 <td>${arr[i][1]}</td>
                 <td>${arr[i][2]}</td>
-                <td>${arr[i][3]}</td>
+                <td>${newFiberName}</td>
                 </tr>`
               }
               
@@ -1338,7 +1358,6 @@ function AddHHintoMap(){
             legendItems.push(arr);
         }
       }
-
       if(duplicateHH.includes(HH_coordinate[hh_index][0])){
         color = 'purple'
         fillColor = '#CBC3E3'
@@ -1348,7 +1367,6 @@ function AddHHintoMap(){
             legendItems.push(arr);
         }
       }
-
       if(HH_Before[name]['Drop'].length>0){
         fillColor = '#666a6e'
         let desc = 'HH with unconnected drop'
@@ -1377,9 +1395,10 @@ function AddHHintoMap(){
       geo_HHlayer.on('click', function() {
           this.openPopup();
           if(Layers.length > 0){
-            console.log('ID:', this.properties.name);
+            //console.log('ID:', this.properties.name);
             let HHname = this.properties.name
             HighlightFiberPath(HHname)
+            DisplayFiberPath(HHname)
           }
       });
       storeHHColor.push([name, color, fillColor])
@@ -1738,7 +1757,7 @@ function TraceFiber(){
 }
 function CreateLegend(){
   // Initialize legendContent with the legend container opening tag
-  var legendContent = '<div class="legend">' +
+  let legendContent = '<div class="legend">' +
                     '<table id="legend-table">';
 
   // Iterate over each item in the legendItems array
@@ -1755,11 +1774,10 @@ function CreateLegend(){
                         '<td>' + item[2] + '</td>' +
                     '</tr>';
   }
-
   // Close the legend container
   legendContent += '</table>' +
                 '</div>';
-  var legendControl = L.control({position: 'bottomright'});
+  let legendControl = L.control({position: 'bottomright'});
   // Define onAdd method for custom control
   legendControl.onAdd = function (map) {
     var div = L.DomUtil.create('div', 'info legend');
@@ -1792,4 +1810,197 @@ function CreateLegend(){
     map.scrollWheelZoom.enable();
   });
 }
+//create overview to display fiber In
+function DisplayFiberPath(HHname){
+  function getFiberColor(fiberNumber) {
+    let effectiveFiberNumber = (fiberNumber - 1) % 12 + 1;
+    const fiberColors = ["blue", "orange", "green", "brown", "#607d8b", "white", "red", "black", "yellow", '#673ab7' ,"#e91e63", "aqua"];
+    let color = fiberColors[effectiveFiberNumber - 1];
+    let textColor = 'black'
+    let isDarkColor =['brown',"#607d8b", "red", "black", '#673ab7', '#e91e63']
+    if(isDarkColor.includes(color)){
+      textColor = 'white'
+    }
+    return { backgroundColor: color, textColor: textColor };
+  }
+  function findDirection(HHName,fiberName){
+    const splitNames = fiberName.split('_to_');
+    let namecable = splitNames[0]
+    let nameHH = splitNames[1]
+    let countHH = 0
+    let Info = HH_Before[HHName]['Info']
+    //nak cari HH tu ada berapa cable yang masuk kat dia
+    for(let words in Info){
+      if(nameHH == Info[words][4]){
+        countHH = countHH + 1
+      }
+    }
+    for (let words in Info){
+      if(namecable == Info[words][0] && nameHH == Info[words][4]){
+        return [Info[words][3], countHH]
+      }
+    }
+  }
+  let container = document.querySelector('.container');
+  let content = document.querySelector('.content');
+  let HH_DTS = HHtoObserve[HHname]
+  let HH_PS = hhFromPS[HHname]
+  content.innerHTML = '';
+  let fiberPath = ''
+  let cablePath = ''
+  container.style.display = 'none'
+  //ni untuk DTS
+  if(HH_DTS != undefined){
+    container.style.display = 'block'
+    for(let fiberIn in HH_DTS){
+      if(fiberIn != 'DTS' && fiberIn != 'Fail'){
+        let len = HH_DTS[fiberIn].length - 1
+        let fiberColor = getFiberColor(parseInt(fiberIn))
+        fiberPath += `<button style="background-color: ${fiberColor.backgroundColor}; 
+        color: ${fiberColor.textColor}" onclick="showValue('${fiberIn}_&&_${HHname}_&&_${fiberColor.backgroundColor}')" 
+        onmouseover="this.style.cursor='pointer'" onmouseout="this.style.cursor='auto'">Fiber ${fiberIn}</button>`;
+        fiberPath += `<table border="1" style="margin: auto;">
+        <tr>
+          <td style="text-align: center; padding: 5px;">Fiber</td>
+          <td style="text-align: center; padding: 5px;">Cable</td>
+          <td style="text-align: center; padding: 5px;">HH</td>
+        </tr>
+        <tr>
+          <td style="text-align: center; padding: 5px;">${HH_DTS[fiberIn][len][0]}</td>
+          <td style="text-align: center; padding: 5px;">${HH_DTS[fiberIn][len][1]}</td>
+          <td style="text-align: center; padding: 5px;">${HH_DTS[fiberIn][len][2]}</td>
+        </tr>
+      </table><br>`;
+      }
+    }
+  }
+  //ni untuk PS
+  if(HH_PS != undefined){
+    container.style.display = 'block'
+    for(let cableIn in HH_PS){
+      if(cableIn != 'IncomingFiber'){
+        let allFiber = Object.keys(HH_PS[cableIn])
+        let rangefiber = []
+        for(let f1 in HH_Before[HHname]['Equipment']){
+          for(let f2 in HH_Before[HHname]['Equipment'][f1]){
+            for(let i=0; i< HH_Before[HHname]['Equipment'][f1][f2].length;i++){
+              if(HH_Before[HHname]['Equipment'][f1][f2][i][3] == cableIn){
+                let range = HH_Before[HHname]['Equipment'][f1][f2][i][2]
+                range = range.split('-')
+                if(range.length==2){
+                  for(let j = parseInt(range[0]); j<= parseInt(range[1]); j++){
+                    rangefiber.push(String(j))
+                  }
+                } 
+                else{
+                  rangefiber.push(String(range[0]))
+                }
+              }
+            }
+          }
+        }
+        rangefiber = rangefiber.sort()
+        for(let i = 0; i<rangefiber.length; i++){
+          if(!allFiber.includes(rangefiber[i])){
+            HH_PS[cableIn][rangefiber[i]] = 'none'
+          }
+        }
+        let cable = cableIn.split('_to_')[0]
+        let dir = findDirection(HHname,cableIn)
+        cablePath += `Cable: ${cable} (${dir[0]})`
+        cablePath +=`<table border="1 style="margin: auto;" > 
+          <tr>
+            <td style="text-align: center; padding: 5px;"><strong>Fiber</strong></td>
+            <td style="text-align: center; padding: 5px;"><strong>HH</strong></td>
+          </tr>`
+        for(let fiberOut in HH_PS[cableIn]){
+          let fiberColor = getFiberColor(parseInt(fiberOut))
+          cablePath += `<tr>
+          <td style="text-align: center; padding: 5px;"><button style="background-color: ${fiberColor.backgroundColor}; 
+          color: ${fiberColor.textColor}" onclick="showValue('${fiberOut}_&&_${HH_PS[cableIn][fiberOut]}_&&_${fiberColor.backgroundColor}')" 
+          onmouseover="this.style.cursor='pointer'" onmouseout="this.style.cursor='auto'">Fiber ${fiberOut}</button></td>
 
+          <td style="text-align: center; padding: 5px;">${HH_PS[cableIn][fiberOut]}</td>
+          </tr>`
+        }
+        cablePath += `</table><br>`
+      }
+    }
+    console.log('HH_PS: ',HH_PS)
+  }
+  fiberPath+= cablePath
+  
+  content.innerHTML = fiberPath;
+
+
+  
+  
+}
+
+//function ni ada dalam function DisplayFiberPath
+function showValue(value) {
+  //clear highlight color for fiber
+  for(let leafletID in Layers[0]._layers){
+    Layers[0]._layers[leafletID].setStyle({
+        color: '#3388ff',
+      })
+  }
+  //clear highlight color for HH
+  for(let i =0; i < HHlayer.length; i++){
+    HHlayer[i].setStyle({
+        color: storeHHColor[i][1],
+        fillColor: storeHHColor[i][2],
+        fillOpacity: 1
+      })
+    //HHlayer[i].options.color = 'red'
+  }
+  let fiberIn = value.split('_&&_')[0]
+  let HH = value.split('_&&_')[1]
+  let colors = value.split('_&&_')[2]
+
+  //untuk cari fiberIn
+  for(let fin in  HHtoObserve[HH]){
+    if( fiberIn == fin){
+      break
+    }
+    else{
+      let len = HHtoObserve[HH][fin].length - 1
+      let no1 = HHtoObserve[HH][fin][0][0]
+      let no2 = HHtoObserve[HH][fin][len][0]
+      if(fiberIn == no2){
+        fiberIn = no1
+      }
+    }
+  }
+  console.log('fiberIn: ',fiberIn)
+  if(HH != 'none'){
+    let arr = HHtoObserve[HH][fiberIn]
+    for(let i = 0; i<arr.length; i++ ){
+      if(arr[i].length == 5){
+        //highlight fiber
+        let leafletID = arr[i][4]
+        let HHname = arr[i][2]
+        Layers[0]._layers[leafletID].setStyle({
+          color: colors,
+        })
+        //highlight HH
+        for(let j = 0; j<storeHHColor.length;j++){
+          if(storeHHColor[j][0] == HHname){
+            HHlayer[j].setStyle({
+              fillColor: colors,
+              fillOpacity: 0.9,
+            })
+            if(i ==0){
+              HHlayer[j].setStyle({
+                color: colors,
+                fillColor: colors,
+                fillOpacity: 0.9,
+              })
+            }
+            break;
+          }
+        }
+      }
+    }
+  }
+}
