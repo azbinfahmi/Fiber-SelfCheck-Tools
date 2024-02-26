@@ -1813,11 +1813,12 @@ function CreateLegend(){
 //create overview to display fiber In
 function DisplayFiberPath(HHname){
   function getFiberColor(fiberNumber) {
+    console.log('fiberNumber',fiberNumber)
     let effectiveFiberNumber = (fiberNumber - 1) % 12 + 1;
-    const fiberColors = ["blue", "orange", "green", "brown", "#607d8b", "white", "red", "black", "yellow", '#673ab7' ,"#e91e63", "aqua"];
+    const fiberColors = ["#2196f3", "#ff9800", "#8bc34a", "#795548", "#607d8b", "#f5f5f5", "#f44336", "#444444", "yellow", '#673ab7' ,"#e91e63", "#00bcd4"];
     let color = fiberColors[effectiveFiberNumber - 1];
     let textColor = 'black'
-    let isDarkColor =['brown',"#607d8b", "red", "black", '#673ab7', '#e91e63']
+    let isDarkColor =['#795548',"#607d8b", "#f44336", "#444444", '#673ab7', '#e91e63']
     if(isDarkColor.includes(color)){
       textColor = 'white'
     }
@@ -1846,7 +1847,7 @@ function DisplayFiberPath(HHname){
   let HH_DTS = HHtoObserve[HHname]
   let HH_PS = hhFromPS[HHname]
   content.innerHTML = '';
-  let fiberPath = ''
+  let fiberPath = '<strong>Fiber Path</strong><br>'
   let cablePath = ''
   container.style.display = 'none'
   //ni untuk DTS
@@ -1925,16 +1926,14 @@ function DisplayFiberPath(HHname){
         }
         cablePath += `</table><br>`
       }
+      else{
+
+      }
     }
     console.log('HH_PS: ',HH_PS)
   }
   fiberPath+= cablePath
-  
   content.innerHTML = fiberPath;
-
-
-  
-  
 }
 
 //function ni ada dalam function DisplayFiberPath
