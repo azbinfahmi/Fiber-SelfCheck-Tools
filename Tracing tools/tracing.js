@@ -1319,7 +1319,6 @@ function AddHHintoMap(){
           </div>
       </div>
     `;
-    
       let additionalStyles = `
         <style>
             .custom-popup {
@@ -1375,7 +1374,6 @@ function AddHHintoMap(){
             legendItems.push(arr);
         }
       }
-
       geo_HHlayer = L.circleMarker([lat, lon], {
         radius: 8,
         color: color,
@@ -1397,7 +1395,9 @@ function AddHHintoMap(){
           if(Layers.length > 0){
             //console.log('ID:', this.properties.name);
             let HHname = this.properties.name
-            HighlightFiberPath(HHname)
+            if(psPress != true){
+              HighlightFiberPath(HHname)
+            }
             DisplayFiberPath(HHname)
           }
       });
@@ -1714,7 +1714,7 @@ function TraceFiber(){
       })
 
       if(duplicateHH.includes(HHlayer[i].properties.name)){
-        let desc = 'HH with Unconnected Drop'
+        let desc = 'Duplicate HH'
         let colors = HHlayer[i].options.color
         let arr = ['purple',colors, desc]
         if (!itemExists(arr, legendItems)) {
@@ -1751,9 +1751,7 @@ function TraceFiber(){
       storeHHColor[i] = [HHlayer[i].properties.name, HHlayer[i].options.color, HHlayer[i].options.fillColor]
     }
   }
-  
   console.log('failTracingHH: ',failTracingHH)
-  
 }
 function CreateLegend(){
   // Initialize legendContent with the legend container opening tag
@@ -1811,9 +1809,10 @@ function CreateLegend(){
   });
 }
 //create overview to display fiber In
+let path_FibertoPS ={}
 function DisplayFiberPath(HHname){
+  path_FibertoPS ={}
   function getFiberColor(fiberNumber) {
-    console.log('fiberNumber',fiberNumber)
     let effectiveFiberNumber = (fiberNumber - 1) % 12 + 1;
     const fiberColors = ["#2196f3", "#ff9800", "#8bc34a", "#795548", "#607d8b", "#f5f5f5", "#f44336", "#444444", "yellow", '#673ab7' ,"#e91e63", "#00bcd4"];
     let color = fiberColors[effectiveFiberNumber - 1];
@@ -1842,16 +1841,120 @@ function DisplayFiberPath(HHname){
       }
     }
   }
+  //function ni guna kalau user press ctrl + shift + p, guna untuk checkk PS mana yang datang dari Primary ni
+  function getConnectedPS(HHName){
+    //clear highlight color for fiber
+    for(let leafletID in Layers[0]._layers){
+    Layers[0]._layers[leafletID].setStyle({
+        color: '#3388ff',
+      })
+    }
+    //clear highlight color for HH
+    for(let i =0; i< HHlayer.length; i++){
+      HHlayer[i].setStyle({
+          color: storeHHColor[i][1],
+          fillColor: storeHHColor[i][2],
+          fillOpacity: 1
+    })
+  //HHlayer[i].options.color = 'red'
+    }
+    let content =''
+    content = `<strong>Last destination PS</strong><br>`
+    content += `<table border="1">
+    <tr>
+      <td style="text-align: center; padding: 5px;">Fiber Out</td>
+      <td style="text-align: center; padding: 5px;">HH</td>
+      <td style="text-align: center; padding: 5px;">Incoming Fiber to PS</td>
+    </tr>`
+    for(let HH in hhFromPS){
+      for(let cable in hhFromPS[HH]['IncomingFiber']){
+        for(let fIn in hhFromPS[HH]['IncomingFiber'][cable]){
+          let arr1 = hhFromPS[HH]['IncomingFiber'][cable][fIn]
+          let len = arr1.length -1
+          if(HHName == arr1[len][3]){
+            if(HH == 'HH-00006048'){
+              console.log('arr1[len]: ',arr1[len])
+              console.log('fIn: ',fIn)
+            }
+            path_FibertoPS[arr1[len][0]] = arr1
+          }
+        }
+      }
+    }
+    console.log('path_FibertoPS: ',path_FibertoPS)
+    for(let fIn in path_FibertoPS){
+      let arr = path_FibertoPS[fIn]
+      let len = arr.length -1
+      let fiberColor = getFiberColor(parseInt(arr[len][0]))
+      let temp = [fIn,fiberColor.backgroundColor]
+      content += `<tr> <td style="text-align: center; padding: 5px;"><button style="background-color: ${fiberColor.backgroundColor}; 
+      color: ${fiberColor.textColor}" onclick="showValue('${temp}')" 
+      onmouseover="this.style.cursor='pointer'" onmouseout="this.style.cursor='auto'">Fiber ${arr[len][0]}</button> </td>`;
+      content +=`<td style="text-align: center; padding: 5px;"> ${arr[0][2]}</td>`
+      content +=`<td style="text-align: center; padding: 5px;"> ${arr[0][0]}</td></tr>`
+
+      //highlight fiber and HH
+      let color = 'yellow'
+      for(let i=0; i < arr.length; i++){
+        freeze = true
+        if(arr[i].length == 5 && arr[i][4] != undefined){
+          //highlight fiber
+          let leafletID = arr[i][4]
+          let HH = arr[i][2]
+          Layers[0]._layers[leafletID].setStyle({
+            color: color,
+          })
+          //highlight HH
+          for(let j = 0; j<storeHHColor.length;j++){
+            if(storeHHColor[j][0] == HH){
+              HHlayer[j].setStyle({
+                fillColor: color,
+                fillOpacity: 0.4,
+              })
+              break;
+            }
+          }
+        }
+      }
+    }
+    //highlight target HH
+    for(let fIn in path_FibertoPS){
+      let arr = path_FibertoPS[fIn]
+      let color = 'white'
+      for(let i=0; i < arr.length; i++){
+        if(arr[i].length == 5 && arr[i][4] != undefined){
+          let HH = arr[i][2]
+          //highlight HH
+          for(let j = 0; j<storeHHColor.length;j++){
+            if(storeHHColor[j][0] == HH){
+              if(i ==0){
+                HHlayer[j].setStyle({
+                  fillColor: color,
+                  color:color,
+                  fillOpacity: 0.9,
+                })
+              }
+              break;
+            }
+          }
+        }
+      }
+    }
+    content += `</table>`
+    return content
+  }
+
   let container = document.querySelector('.container');
   let content = document.querySelector('.content');
   let HH_DTS = HHtoObserve[HHname]
   let HH_PS = hhFromPS[HHname]
   content.innerHTML = '';
-  let fiberPath = '<strong>Fiber Path</strong><br>'
+  let fiberPath = '<strong>Fiber Path</strong><br><br>'
   let cablePath = ''
   container.style.display = 'none'
   //ni untuk DTS
   if(HH_DTS != undefined){
+    fiberPath += '<strong>DTS to Primary</strong><br>'
     container.style.display = 'block'
     for(let fiberIn in HH_DTS){
       if(fiberIn != 'DTS' && fiberIn != 'Fail'){
@@ -1860,15 +1963,13 @@ function DisplayFiberPath(HHname){
         fiberPath += `<button style="background-color: ${fiberColor.backgroundColor}; 
         color: ${fiberColor.textColor}" onclick="showValue('${fiberIn}_&&_${HHname}_&&_${fiberColor.backgroundColor}')" 
         onmouseover="this.style.cursor='pointer'" onmouseout="this.style.cursor='auto'">Fiber ${fiberIn}</button>`;
-        fiberPath += `<table border="1" style="margin: auto;">
+        fiberPath += `<table border="1">
         <tr>
           <td style="text-align: center; padding: 5px;">Fiber</td>
-          <td style="text-align: center; padding: 5px;">Cable</td>
           <td style="text-align: center; padding: 5px;">HH</td>
         </tr>
         <tr>
           <td style="text-align: center; padding: 5px;">${HH_DTS[fiberIn][len][0]}</td>
-          <td style="text-align: center; padding: 5px;">${HH_DTS[fiberIn][len][1]}</td>
           <td style="text-align: center; padding: 5px;">${HH_DTS[fiberIn][len][2]}</td>
         </tr>
       </table><br>`;
@@ -1877,6 +1978,7 @@ function DisplayFiberPath(HHname){
   }
   //ni untuk PS
   if(HH_PS != undefined){
+    cablePath += '<strong>Fiber From Primary Splitter</strong><br><br>'
     container.style.display = 'block'
     for(let cableIn in HH_PS){
       if(cableIn != 'IncomingFiber'){
@@ -1933,11 +2035,55 @@ function DisplayFiberPath(HHname){
     console.log('HH_PS: ',HH_PS)
   }
   fiberPath+= cablePath
+  //ni untuk show path last PS
+  if(psPress == true){
+    container.style.display = 'block'
+    fiberPath = getConnectedPS(HHname)
+    psPress = false
+  }
+  
   content.innerHTML = fiberPath;
 }
 
 //function ni ada dalam function DisplayFiberPath
 function showValue(value) {
+  //highlight incoming path from PS
+  function HighlightFiberPath_FromPS(arr, color){
+    freeze = true
+    
+    for(let i = 0; i < arr.length; i++){
+      if(arr[i].length == 5 && arr[i][4] != undefined){
+        //highlight fiber
+        let leafletID = arr[i][4]
+        let HH = arr[i][2]
+        Layers[0]._layers[leafletID].setStyle({
+          color: color,
+        })
+        //highlight HH
+        for(let j = 0; j<storeHHColor.length;j++){
+          if(storeHHColor[j][0] == HH){
+            if(i ==0){
+              HHlayer[j].setStyle({
+                fillColor: color,
+                color: color,
+                fillOpacity: 0.9,
+              })
+            }
+            else{
+              HHlayer[j].setStyle({
+                fillColor: color,
+                fillOpacity: 0.1,
+              })
+            }
+            
+            break;
+          }
+        }
+      }
+    }
+    
+    
+  }
   //clear highlight color for fiber
   for(let leafletID in Layers[0]._layers){
     Layers[0]._layers[leafletID].setStyle({
@@ -1953,53 +2099,60 @@ function showValue(value) {
       })
     //HHlayer[i].options.color = 'red'
   }
-  let fiberIn = value.split('_&&_')[0]
-  let HH = value.split('_&&_')[1]
-  let colors = value.split('_&&_')[2]
-
-  //untuk cari fiberIn
-  for(let fin in  HHtoObserve[HH]){
-    if( fiberIn == fin){
-      break
-    }
-    else{
-      let len = HHtoObserve[HH][fin].length - 1
-      let no1 = HHtoObserve[HH][fin][0][0]
-      let no2 = HHtoObserve[HH][fin][len][0]
-      if(fiberIn == no2){
-        fiberIn = no1
+  if(Object.keys(path_FibertoPS).length === 0){
+    let fiberIn = value.split('_&&_')[0]
+    let HH = value.split('_&&_')[1]
+    let colors = value.split('_&&_')[2]
+    //untuk cari fiberIn
+    for(let fin in  HHtoObserve[HH]){
+      if( fiberIn == fin){
+        break
+      }
+      else{
+        let len = HHtoObserve[HH][fin].length - 1
+        let no1 = HHtoObserve[HH][fin][0][0]
+        let no2 = HHtoObserve[HH][fin][len][0]
+        if(fiberIn == no2){
+          fiberIn = no1
+        }
       }
     }
-  }
-  console.log('fiberIn: ',fiberIn)
-  if(HH != 'none'){
-    let arr = HHtoObserve[HH][fiberIn]
-    for(let i = 0; i<arr.length; i++ ){
-      if(arr[i].length == 5){
-        //highlight fiber
-        let leafletID = arr[i][4]
-        let HHname = arr[i][2]
-        Layers[0]._layers[leafletID].setStyle({
-          color: colors,
-        })
-        //highlight HH
-        for(let j = 0; j<storeHHColor.length;j++){
-          if(storeHHColor[j][0] == HHname){
-            HHlayer[j].setStyle({
-              fillColor: colors,
-              fillOpacity: 0.9,
-            })
-            if(i ==0){
+    console.log('fiberIn: ',fiberIn)
+    if(HH != 'none'){
+      let arr = HHtoObserve[HH][fiberIn]
+      for(let i = 0; i<arr.length; i++ ){
+        if(arr[i].length == 5){
+          //highlight fiber
+          let leafletID = arr[i][4]
+          let HHname = arr[i][2]
+          Layers[0]._layers[leafletID].setStyle({
+            color: colors,
+          })
+          //highlight HH
+          for(let j = 0; j<storeHHColor.length;j++){
+            if(storeHHColor[j][0] == HHname){
               HHlayer[j].setStyle({
-                color: colors,
                 fillColor: colors,
                 fillOpacity: 0.9,
               })
+              if(i ==0){
+                HHlayer[j].setStyle({
+                  color: colors,
+                  fillColor: colors,
+                  fillOpacity: 0.9,
+                })
+              }
+              break;
             }
-            break;
           }
         }
       }
     }
+  }
+  else{
+    value = value.split(',')
+    let fIn = value[0]
+    let color = value[1]
+    HighlightFiberPath_FromPS(path_FibertoPS[fIn],color)
   }
 }
