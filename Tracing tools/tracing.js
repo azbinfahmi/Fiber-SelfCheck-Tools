@@ -302,6 +302,7 @@ function StoreSplicingInfo(){
       }
     }
 
+    //store splicing dari excel
     let cableInfo ={}, checkHHname =[], nameHH = 1
     for (let key in workbook_arr) {
       let coord =[],storeDR = []
@@ -682,18 +683,25 @@ function StoreSplicingInfo(){
               if(fiberin2 === fiberin && name[0]==cablename){
                 newFibername = cablename1
                 for(let i = 0; i < arr1[fiberin].length; i++){
-                  if(HH == 'HH-00002251'){
-                    console.log('cablename: ',cablename1)
-                    console.log('arr2: ',arr2, '\nfiberin: ',fiberin, '\narr1: ',arr1, '\nHH: ',HH)
-                    console.log('arr1[fiberin2][i]',arr1[fiberin2][i])
-                    console.log('arr2[fiberin2][i]',arr2[fiberin2][i])
-                  } 
+                  // if(HH == 'HH-00002251'){
+                  //   console.log('cablename: ',cablename1)
+                  //   console.log('arr2: ',arr2, '\nfiberin: ',fiberin, '\narr1: ',arr1, '\nHH: ',HH)
+                  //   console.log('arr1[fiberin2][i]',arr1[fiberin2][i])
+                  //   console.log('arr2[fiberin2][i]',arr2[fiberin2][i])
+                  // } 
                   if(arr2[fiberin2][i] != undefined){
                     if(arr2[fiberin2][i][3] != '' && arr2[fiberin2][i].length == 4 ){
                       if(arr2[fiberin2][i][1] == arr1[fiberin2][i][1] && arr2[fiberin2][i][2] == arr1[fiberin2][i][2]){
                         cableInfo[HH]['Equipment'][cablename][fiberin][i][3] =  arr2[fiberin2][i][3]
                         newFibername_old = cablename1
                       }
+                      else if (arr2[fiberin2][i].length == 4 && (arr2[fiberin2].length > arr1[fiberin2].length)){
+                        if(arr2[fiberin2][0][2].split('-')[0] == arr1[fiberin2][0][2].split('-')[0]){
+                          cableInfo[HH]['Equipment'][cablename][fiberin] = arr2[fiberin2]
+                          i = arr1[fiberin].length
+                          break;
+                        }
+                      }                     
                       else{
                         newFibername = newFibername_old
                       }
@@ -709,6 +717,7 @@ function StoreSplicingInfo(){
         delete cableInfo[HH]['Equipment'][cablename]
       }
     }
+
     //bawak masuk info dari cableinfo Equipment untuk show cable mana yang amsuk ke dalam equipment
     for (let HH in cableInfo){
       // console.log('HH',HH)

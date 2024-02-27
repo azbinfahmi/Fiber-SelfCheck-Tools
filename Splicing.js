@@ -1290,9 +1290,6 @@ function HighlightWrongHH(checkError){
     HH_coordinate.forEach(feature =>{
       let HHname = feature[0]
       if(HHname == HHeq[i]){
-        console.log(' HHlayer: ', HHlayer)
-        console.log(' HHeq[i]: ', HHeq[i])
-        console.log('index: ',index)
         HHlayer[index].setStyle({
           color: 'green',
           fillColor: 'lightgreen',
