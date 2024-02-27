@@ -1862,6 +1862,7 @@ function DisplayFiberPath(HHname){
     content = `<strong>Last destination PS</strong><br>`
     content += `<table border="1">
     <tr>
+      <td style="text-align: center; padding: 5px;">No</td>
       <td style="text-align: center; padding: 5px;">Fiber Out</td>
       <td style="text-align: center; padding: 5px;">HH</td>
       <td style="text-align: center; padding: 5px;">Incoming Fiber to PS</td>
@@ -1882,12 +1883,14 @@ function DisplayFiberPath(HHname){
       }
     }
     console.log('path_FibertoPS: ',path_FibertoPS)
+    let index = 1
     for(let fIn in path_FibertoPS){
       let arr = path_FibertoPS[fIn]
       let len = arr.length -1
       let fiberColor = getFiberColor(parseInt(arr[len][0]))
       let temp = [fIn,fiberColor.backgroundColor]
-      content += `<tr> <td style="text-align: center; padding: 5px;"><button style="background-color: ${fiberColor.backgroundColor}; 
+      content +=`<tr><td style="text-align: center; padding: 5px;">${index}</td>`
+      content += `<td style="text-align: center; padding: 5px;"><button style="background-color: ${fiberColor.backgroundColor}; 
       color: ${fiberColor.textColor}" onclick="showValue('${temp}')" 
       onmouseover="this.style.cursor='pointer'" onmouseout="this.style.cursor='auto'">Fiber ${arr[len][0]}</button> </td>`;
       content +=`<td style="text-align: center; padding: 5px;"> ${arr[0][2]}</td>`
@@ -1916,6 +1919,7 @@ function DisplayFiberPath(HHname){
           }
         }
       }
+      index += 1
     }
     //highlight target HH
     for(let fIn in path_FibertoPS){

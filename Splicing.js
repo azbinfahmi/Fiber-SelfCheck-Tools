@@ -1097,9 +1097,10 @@ function AddHHintoMap(){
         this.openPopup();
     });
     geo_HHlayer.addTo(map)
+    HHlayer.push(geo_HHlayer)
   })
   
-    HHlayer.push(geo_HHlayer)
+    
     let lat = HH_coordinate[0][1]
     let long = HH_coordinate[0][2]
     let zoomLevel = 15
@@ -1147,7 +1148,7 @@ function CompareSplicing(){
                 for(let i = 0; i <Arr_Before.length; i++ ){
                   for(let j =0; j< Arr_Before[i].length; j++){
                    if(Arr_Before[i][j] != Arr_After[i][j]){
-                    console.log('Arr_After: ',Arr_After[i], 'Arr_Before: ',Arr_Before[i])
+                    //console.log('Arr_After: ',Arr_After[i], 'Arr_Before: ',Arr_Before[i])
                     temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
                    }
                   }
@@ -1289,6 +1290,9 @@ function HighlightWrongHH(checkError){
     HH_coordinate.forEach(feature =>{
       let HHname = feature[0]
       if(HHname == HHeq[i]){
+        console.log(' HHlayer: ', HHlayer)
+        console.log(' HHeq[i]: ', HHeq[i])
+        console.log('index: ',index)
         HHlayer[index].setStyle({
           color: 'green',
           fillColor: 'lightgreen',
