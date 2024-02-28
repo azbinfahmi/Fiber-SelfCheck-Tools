@@ -430,7 +430,7 @@ function StoreSplicingInfo(){
                     }
                     else{
                       if(eqVal != "" && portVal != ""){
-                        eqName = eqVal.replace(/[^a-zA-Z0-9]/g, '')
+                        eqName = eqVal
                         fiber_IN = fiberVal
                       }
                       let check_cable = getCableOutfromInfo(key,cableVal)
@@ -510,8 +510,6 @@ function StoreSplicingInfo(){
                     if(fOutVal.includes('DR') || fOutVal.includes('Drop')){
                       if(cableInfo[key]['Drop'].includes(fOutVal)){
                         let drop = cableInfo[key]['Drop']
-                        // console.log('fOutVal: ',fOutVal)
-                        // console.log('drop: ',drop)
                         cableInfo[key]['Drop'] = drop.filter(value => value !== fOutVal)
                       }
                       fOutVal = ""
@@ -603,9 +601,7 @@ function StoreSplicingInfo(){
                 }
               }
             }
-            
             organizedEq[uniqueName[i]] = arr_fiberIn
-  
             if(!cableInfo[HH][infos][uniqueName[i]]){
               cableInfo[HH][infos] = organizedEq
             }
@@ -1106,7 +1102,6 @@ function AddHHintoMap(){
             let countIn = direction[1]
             let foc_in = extractFOC(fibername)
             let foc_out = extractFOC(arr[i][2])
-
             if(arr[i][2] === "Equipment"){
               continue
             }
@@ -1874,6 +1869,7 @@ function DisplayFiberPath(HHname){
       <td style="text-align: center; padding: 5px;">No</td>
       <td style="text-align: center; padding: 5px;">Fiber Out</td>
       <td style="text-align: center; padding: 5px;">HH</td>
+      <td style="text-align: center; padding: 5px;">SG</td>
       <td style="text-align: center; padding: 5px;">Incoming Fiber to PS</td>
     </tr>`
     for(let HH in hhFromPS){
@@ -1912,6 +1908,17 @@ function DisplayFiberPath(HHname){
     for(let fIn in path_FibertoPS){
       let arr = path_FibertoPS[fIn]
       let len = arr.length -1
+      let nameOfHH = arr[0][2]
+      if(nameOfHH.includes('HH-')){
+        // console.log('arr[0]: ',arr[0])
+        // console.log('cable: ',`${arr[0][1]}_to_${arr[1][2]}`)
+        // console.log("HH_Before[nameOfHH]['Equipment']: ",HH_Before[nameOfHH]['Equipment'])
+        nameOfHH = HH_Before[nameOfHH]['Equipment'][`${arr[0][1]}_to_${arr[1][2]}`][arr[0][0]][0][0]
+      }
+      let firstDashIndex = nameOfHH.indexOf('-');
+      let secondDashIndex = nameOfHH.indexOf('-', firstDashIndex + 1);
+      let result = nameOfHH.substring(firstDashIndex + 1, secondDashIndex);
+
       let fiberColor = getFiberColor(parseInt(arr[len][0]))
       let temp = [fIn,fiberColor.backgroundColor]
       content +=`<tr><td style="text-align: center; padding: 5px;">${index}</td>`
@@ -1919,6 +1926,7 @@ function DisplayFiberPath(HHname){
       color: ${fiberColor.textColor}" onclick="showValue('${temp}')" 
       onmouseover="this.style.cursor='pointer'" onmouseout="this.style.cursor='auto'">Fiber ${arr[len][0]}</button> </td>`;
       content +=`<td style="text-align: center; padding: 5px;"> ${arr[0][2]}</td>`
+      content +=`<td style="text-align: center; padding: 5px;"> ${result}</td>`
       content +=`<td style="text-align: center; padding: 5px;"> ${arr[0][0]}</td></tr>`
 
       //highlight fiber and HH
@@ -2007,7 +2015,7 @@ function DisplayFiberPath(HHname){
   }
   //ni untuk PS
   if(HH_PS != undefined){
-    cablePath += '<strong>Fiber From Primary Splitter</strong><br><br>'
+    cablePath += '<strong>Fiber To DTS </strong><br><br>'
     container.style.display = 'block'
     for(let cableIn in HH_PS){
       if(cableIn != 'IncomingFiber'){

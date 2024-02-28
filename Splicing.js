@@ -589,10 +589,8 @@ function StoreSplicingInfo(){
               }
             }
           }
-          
           organizedEq[uniqueName[i]] = arr_fiberIn
-
-          if(!cableInfo[HH][infos][uniqueName[i]]){
+          if(!cableInfo[HH][infos][uniqueName[i]]){            
             cableInfo[HH][infos] = organizedEq
           }
         }
@@ -659,23 +657,41 @@ function StoreSplicingInfo(){
   }
   //compare cableinfo and eqFromCableSheet
   for(let HH in cableInfo){
+    // console.log(HH)
     for(let cablename in cableInfo[HH]['Equipment']){
-      let arr1 = cableInfo[HH]['Equipment'][cablename], newFibername
+      let arr1 = cableInfo[HH]['Equipment'][cablename], newFibername,newFibername_old
       for(let fiberin in arr1){
         for(let cablename1 in eqFromCableSheet[HH]['EqInfo_Edited']){
+          let name = cablename1.split('_to_')
           let arr2 = eqFromCableSheet[HH]['EqInfo_Edited'][cablename1]
           for(let fiberin2 in arr2){
-            if(fiberin2 === fiberin){
+            if(fiberin2 === fiberin && name[0]==cablename){
               newFibername = cablename1
               for(let i = 0; i < arr1[fiberin].length; i++){
-                if(arr2[fiberin2][i][3] != '' && arr2[fiberin2][i].length == 4){
-                  cableInfo[HH]['Equipment'][cablename][fiberin][i][3] =  arr2[fiberin2][i][3]
+                if(arr2[fiberin2][i] != undefined){
+                  if(arr2[fiberin2][i][3] != '' && arr2[fiberin2][i].length == 4 ){
+                    if(arr2[fiberin2][i][1] == arr1[fiberin2][i][1] && arr2[fiberin2][i][2] == arr1[fiberin2][i][2]){
+                      cableInfo[HH]['Equipment'][cablename][fiberin][i][3] =  arr2[fiberin2][i][3]
+                      newFibername_old = cablename1
+                    }
+                    else if (arr2[fiberin2][i].length == 4 && (arr2[fiberin2].length > arr1[fiberin2].length)){
+                      if(arr2[fiberin2][0][2].split('-')[0] == arr1[fiberin2][0][2].split('-')[0]){
+                        cableInfo[HH]['Equipment'][cablename][fiberin] = arr2[fiberin2]
+                        i = arr1[fiberin].length
+                        break;
+                      }
+                    }                     
+                    else{
+                      newFibername = newFibername_old
+                    }
+                  }
                 }
               }
             }
           }
         }
       }
+      //console.log('newFibername: ',newFibername)
       cableInfo[HH]['Equipment'][newFibername] = cableInfo[HH]['Equipment'][cablename]
       delete cableInfo[HH]['Equipment'][cablename]
     }
