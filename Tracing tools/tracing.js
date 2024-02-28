@@ -1881,13 +1881,29 @@ function DisplayFiberPath(HHname){
         for(let fIn in hhFromPS[HH]['IncomingFiber'][cable]){
           let arr1 = hhFromPS[HH]['IncomingFiber'][cable][fIn]
           let len = arr1.length -1
-          if(HHName == arr1[len][3]){
-            if(HH == 'HH-00006048'){
-              console.log('arr1[len]: ',arr1[len])
-              console.log('fIn: ',fIn)
+          //ni kalau PS tu last kat sini
+          // if(HHName == arr1[len][3]){
+          //   if(HH == 'HH-00006048'){
+          //     console.log('arr1[len]: ',arr1[len])
+          //     console.log('fIn: ',fIn)
+          //   }
+          //   path_FibertoPS[arr1[len][0]] = arr1
+          // }
+          //ni kalau Primary tu lalu HH ni
+          let temp = []
+          for(let i = 0; i < arr1.length; i++){
+            temp.push(arr1[i])
+            if(arr1[i][3] == HHName){
+              break;
             }
-            path_FibertoPS[arr1[len][0]] = arr1
+            if(i == len){
+              temp = []
+            }
           }
+          if(temp.length != 0){
+            path_FibertoPS[arr1[len][0]] = temp
+          }
+          
         }
       }
     }
