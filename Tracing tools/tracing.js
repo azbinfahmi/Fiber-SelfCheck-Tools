@@ -1913,7 +1913,7 @@ function DisplayFiberPath(HHname){
         // console.log('arr[0]: ',arr[0])
         // console.log('cable: ',`${arr[0][1]}_to_${arr[1][2]}`)
         // console.log("HH_Before[nameOfHH]['Equipment']: ",HH_Before[nameOfHH]['Equipment'])
-        nameOfHH = HH_Before[nameOfHH]['Equipment'][`${arr[0][1]}_to_${arr[1][2]}`][arr[0][0]][0][0]
+        nameOfHH = HH_Before[nameOfHH]['Equipment'][`${arr[0][1]}_to_${arr[0][3]}`][arr[0][0]][0][0]
       }
       let firstDashIndex = nameOfHH.indexOf('-');
       let secondDashIndex = nameOfHH.indexOf('-', firstDashIndex + 1);
