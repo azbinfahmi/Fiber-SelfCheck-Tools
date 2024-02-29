@@ -1863,15 +1863,8 @@ function DisplayFiberPath(HHname){
   //HHlayer[i].options.color = 'red'
     }
     let content =''
-    content = `<strong>Last destination PS</strong><br>`
-    content += `<table border="1">
-    <tr>
-      <td style="text-align: center; padding: 5px;">No</td>
-      <td style="text-align: center; padding: 5px;">Fiber Out</td>
-      <td style="text-align: center; padding: 5px;">HH</td>
-      <td style="text-align: center; padding: 5px;">SG</td>
-      <td style="text-align: center; padding: 5px;">Incoming Fiber to PS</td>
-    </tr>`
+    content = `<strong>Fiber from HH to PS</strong><br><br>`
+    
     for(let HH in hhFromPS){
       for(let cable in hhFromPS[HH]['IncomingFiber']){
         for(let fIn in hhFromPS[HH]['IncomingFiber'][cable]){
@@ -1897,87 +1890,108 @@ function DisplayFiberPath(HHname){
             }
           }
           if(temp.length != 0){
-            path_FibertoPS[arr1[len][0]] = temp
+            console.log('arr1: ',arr1)
+            let newCableName = `${arr1[len][1]}_to_${arr1[len][2]}`
+            if(Object.keys(path_FibertoPS).includes(newCableName)){
+              path_FibertoPS[newCableName][arr1[len][0]] = temp
+            }
+            else{
+              let dict = {[arr1[len][0]]:temp}
+              path_FibertoPS[newCableName] = dict
+            }
+            
           }
-          
         }
       }
     }
     console.log('path_FibertoPS: ',path_FibertoPS)
     let index = 1
-    for(let fIn in path_FibertoPS){
-      let arr = path_FibertoPS[fIn]
-      let len = arr.length -1
-      let nameOfHH = arr[0][2]
-      if(nameOfHH.includes('HH-')){
-        // console.log('arr[0]: ',arr[0])
-        // console.log('cable: ',`${arr[0][1]}_to_${arr[1][2]}`)
-        // console.log("HH_Before[nameOfHH]['Equipment']: ",HH_Before[nameOfHH]['Equipment'])
-        nameOfHH = HH_Before[nameOfHH]['Equipment'][`${arr[0][1]}_to_${arr[0][3]}`][arr[0][0]][0][0]
-      }
-      let firstDashIndex = nameOfHH.indexOf('-');
-      let secondDashIndex = nameOfHH.indexOf('-', firstDashIndex + 1);
-      let result = nameOfHH.substring(firstDashIndex + 1, secondDashIndex);
-
-      let fiberColor = getFiberColor(parseInt(arr[len][0]))
-      let temp = [fIn,fiberColor.backgroundColor]
-      content +=`<tr><td style="text-align: center; padding: 5px;">${index}</td>`
-      content += `<td style="text-align: center; padding: 5px;"><button style="background-color: ${fiberColor.backgroundColor}; 
-      color: ${fiberColor.textColor}" onclick="showValue('${temp}')" 
-      onmouseover="this.style.cursor='pointer'" onmouseout="this.style.cursor='auto'">Fiber ${arr[len][0]}</button> </td>`;
-      content +=`<td style="text-align: center; padding: 5px;"> ${arr[0][2]}</td>`
-      content +=`<td style="text-align: center; padding: 5px;"> ${result}</td>`
-      content +=`<td style="text-align: center; padding: 5px;"> ${arr[0][0]}</td></tr>`
-
-      //highlight fiber and HH
-      let color = 'yellow'
-      for(let i=0; i < arr.length; i++){
-        freeze = true
-        if(arr[i].length == 5 && arr[i][4] != undefined){
-          //highlight fiber
-          let leafletID = arr[i][4]
-          let HH = arr[i][2]
-          Layers[0]._layers[leafletID].setStyle({
-            color: color,
-          })
-          //highlight HH
-          for(let j = 0; j<storeHHColor.length;j++){
-            if(storeHHColor[j][0] == HH){
-              HHlayer[j].setStyle({
-                fillColor: color,
-                fillOpacity: 0.4,
-              })
-              break;
-            }
+    for (let Incable in path_FibertoPS){
+      content += `Cable: ${Incable.split('_to_')[0]}`
+      content += `<table border="1">
+      <tr>
+        <td style="text-align: center; padding: 5px;">No</td>
+        <td style="text-align: center; padding: 5px;">Fiber Out</td>
+        <td style="text-align: center; padding: 5px;">HH</td>
+        <td style="text-align: center; padding: 5px;">SG</td>
+        <td style="text-align: center; padding: 5px;">Incoming Fiber to PS</td>
+      </tr>`
+      for(let fIn in path_FibertoPS[Incable]){
+        let arr = path_FibertoPS[Incable][fIn]
+        let len = arr.length -1
+        let nameOfHH = arr[0][2]
+        if(nameOfHH.includes('HH-')){
+          try{
+            nameOfHH = HH_Before[nameOfHH]['Equipment'][`${arr[0][1]}_to_${arr[0][3]}`][arr[0][0]][0][0]
+          }
+          catch(error){
+            nameOfHH = arr[0][2]
           }
         }
-      }
-      index += 1
-    }
-    //highlight target HH
-    for(let fIn in path_FibertoPS){
-      let arr = path_FibertoPS[fIn]
-      let color = 'white'
-      for(let i=0; i < arr.length; i++){
-        if(arr[i].length == 5 && arr[i][4] != undefined){
-          let HH = arr[i][2]
-          //highlight HH
-          for(let j = 0; j<storeHHColor.length;j++){
-            if(storeHHColor[j][0] == HH){
-              if(i ==0){
+        let firstDashIndex = nameOfHH.indexOf('-');
+        let secondDashIndex = nameOfHH.indexOf('-', firstDashIndex + 1);
+        let result = nameOfHH.substring(firstDashIndex + 1, secondDashIndex);
+  
+        let fiberColor = getFiberColor(parseInt(arr[len][0]))
+        let temp = [Incable,fIn,fiberColor.backgroundColor]
+        content +=`<tr><td style="text-align: center; padding: 5px;">${index}</td>`
+        content += `<td style="text-align: center; padding: 5px;"><button style="background-color: ${fiberColor.backgroundColor}; 
+        color: ${fiberColor.textColor}" onclick="showValue('${temp}')" 
+        onmouseover="this.style.cursor='pointer'" onmouseout="this.style.cursor='auto'">Fiber ${arr[len][0]}</button> </td>`;
+        content +=`<td style="text-align: center; padding: 5px;"> ${arr[0][2]}</td>`
+        content +=`<td style="text-align: center; padding: 5px;"> ${result}</td>`
+        content +=`<td style="text-align: center; padding: 5px;"> ${arr[0][0]}</td></tr>`
+  
+        //highlight fiber and HH
+        let color = 'yellow'
+        for(let i=0; i < arr.length; i++){
+          freeze = true
+          if(arr[i].length == 5 && arr[i][4] != undefined){
+            //highlight fiber
+            let leafletID = arr[i][4]
+            let HH = arr[i][2]
+            Layers[0]._layers[leafletID].setStyle({
+              color: color,
+            })
+            //highlight HH
+            for(let j = 0; j<storeHHColor.length;j++){
+              if(storeHHColor[j][0] == HH){
                 HHlayer[j].setStyle({
                   fillColor: color,
-                  color:color,
-                  fillOpacity: 0.9,
+                  fillOpacity: 0.4,
                 })
+                break;
               }
-              break;
+            }
+          }
+        }
+        index += 1
+      }
+      //highlight target HH
+      for(let fIn in path_FibertoPS[Incable]){
+        let arr = path_FibertoPS[Incable][fIn]
+        let color = 'white'
+        for(let i=0; i < arr.length; i++){
+          if(arr[i].length == 5 && arr[i][4] != undefined){
+            let HH = arr[i][2]
+            //highlight HH
+            for(let j = 0; j<storeHHColor.length;j++){
+              if(storeHHColor[j][0] == HH){
+                if(i ==0){
+                  HHlayer[j].setStyle({
+                    fillColor: color,
+                    color:color,
+                    fillOpacity: 0.9,
+                  })
+                }
+                break;
+              }
             }
           }
         }
       }
-    }
-    content += `</table>`
+      content += `</table><br>`
+    }   
     return content
   }
 
@@ -2188,8 +2202,9 @@ function showValue(value) {
   }
   else{
     value = value.split(',')
-    let fIn = value[0]
-    let color = value[1]
-    HighlightFiberPath_FromPS(path_FibertoPS[fIn],color)
+    let cable = value[0]
+    let fIn = value[1]
+    let color = value[2]
+    HighlightFiberPath_FromPS(path_FibertoPS[cable][fIn],color)
   }
 }
