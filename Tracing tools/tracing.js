@@ -1847,6 +1847,150 @@ function DisplayFiberPath(HHname){
   }
   //function ni guna kalau user press ctrl + shift + p, guna untuk checkk PS mana yang datang dari Primary ni
   function getConnectedPS(HHName){
+    function mergeRowsBySGAndHH(tableContent) {
+      // Create a temporary div element to hold the table content
+      let tempDiv = document.createElement('div');
+      tempDiv.innerHTML = tableContent;
+  
+      // Find the table within the div
+      let table = tempDiv.querySelector('table');
+  
+      let rowspans = {};
+      
+      // Loop through each row of the table
+      for (let i = 1; i < table.rows.length; i++) {
+          let row = table.rows[i];
+          let sgCell = row.cells[3].innerText.trim(); // Assuming "SG" is the fourth column, trimming whitespace
+          let hhCell = row.cells[2].innerText.trim(); // Assuming "HH" is the third column, trimming whitespace
+          let key = sgCell + '_' + hhCell;
+  
+          if (rowspans[key] === undefined) {
+              rowspans[key] = 1;
+          } else {
+              rowspans[key]++;
+              row.cells[3].style.display = "none"; // Hide the SG cell of the merged rows
+              row.cells[2].style.display = "none"; // Hide the HH cell of the merged rows
+          }
+      }
+      
+      // Set rowspan attribute for merged rows
+      for (let key in rowspans) {
+          let count = rowspans[key];
+          if (count > 1) {
+              let rowspan = count;
+              for (let i = 1; i < table.rows.length; i++) {
+                  let row = table.rows[i];
+                  let sgCell = row.cells[3].innerText.trim(); // Assuming "SG" is the fourth column, trimming whitespace
+                  let hhCell = row.cells[2].innerText.trim(); // Assuming "HH" is the third column, trimming whitespace
+                  let currentKey = sgCell + '_' + hhCell;
+                  if (currentKey === key) {
+                      row.cells[3].setAttribute("rowspan", rowspan);
+                      row.cells[2].setAttribute("rowspan", rowspan);
+                      break;
+                  }
+              }
+          }
+      }
+  
+      // Return the modified table content
+      return tempDiv.innerHTML;
+    }
+    function resetRowNumbering(content) {
+      // Create a temporary container element
+      const tempContainer = document.createElement('div');
+      tempContainer.innerHTML = content;
+  
+      // Get all rows in the table body
+      const rows = tempContainer.querySelectorAll('tbody tr');
+  
+      let currentSG = null; // Variable to store the current SG value
+      let uniqueHH = new Set(); // Set to store unique HH values within SG
+      let count = 0; // Counter for row numbering within SG and unique HH
+  
+      // Loop through each row
+      rows.forEach(row => {
+          // Get the SG and HH values for the current row
+          const SGValue = row.querySelector('td:nth-child(4)').innerText.trim();
+          const HHValue = row.querySelector('td:nth-child(3)').innerText.trim();
+  
+          // Check if SG value has changed
+          if (SGValue !== currentSG) {
+              // If changed, reset count and update currentSG and uniqueHH
+              count = 0;
+              currentSG = SGValue;
+              uniqueHH = new Set();
+          }
+  
+          // Check if HH value is unique within the current SG
+          if (!uniqueHH.has(HHValue)) {
+              // If unique, increment count and add HH to uniqueHH set
+              count++;
+              uniqueHH.add(HHValue);
+          }
+  
+          // Update the "No" column with the new count
+          row.querySelector('td:first-child').innerText = count;
+      });
+  
+      // Return the modified content as HTML string
+      return tempContainer.innerHTML;
+    }
+    function modifyRowspan(content) {
+      // Create a temporary container element
+      const tempContainer = document.createElement('div');
+      tempContainer.innerHTML = content;
+  
+      // Get all rows in the table body
+      const rows = tempContainer.querySelectorAll('tbody tr');
+  
+      let currentSG = null; // Variable to store the current SG value
+      let uniqueHH = new Set(); // Set to store unique HH values within SG
+      let count = 0; // Counter for row numbering within SG and unique HH
+  
+      // Loop through each row
+      rows.forEach((row, index) => {
+          // Get the SG and HH values for the current row
+          const SGValue = row.querySelector('td:nth-child(4)').innerText.trim();
+          const HHValue = row.querySelector('td:nth-child(3)').innerText.trim();
+  
+          // Check if SG value has changed
+          if (SGValue !== currentSG) {
+              // If changed, reset count and update currentSG and uniqueHH
+              count = 0;
+              currentSG = SGValue;
+              uniqueHH = new Set();
+          }
+  
+          // Check if HH value is unique within the current SG
+          if (!uniqueHH.has(HHValue)) {
+              // If unique, increment count and add HH to uniqueHH set
+              count++;
+              uniqueHH.add(HHValue);
+  
+              // Find the number of rows this HH spans
+              let rowspan = 1;
+              for (let i = index + 1; i < rows.length; i++) {
+                  const nextRowSGValue = rows[i].querySelector('td:nth-child(4)').innerText.trim();
+                  const nextRowHHValue = rows[i].querySelector('td:nth-child(3)').innerText.trim();
+  
+                  if (nextRowSGValue === SGValue && nextRowHHValue === HHValue) {
+                      rowspan++;
+                  } else {
+                      break;
+                  }
+              }
+  
+              // Set rowspan attribute for the current row
+              row.querySelector('td:first-child').setAttribute('rowspan', rowspan);
+          } else {
+              // If HH value is not unique, remove the "No" column
+              row.removeChild(row.querySelector('td:first-child'));
+          }
+      });
+  
+      // Return the modified content as HTML string
+      return tempContainer.innerHTML;
+    }
     //clear highlight color for fiber
     for(let leafletID in Layers[0]._layers){
     Layers[0]._layers[leafletID].setStyle({
@@ -1890,16 +2034,15 @@ function DisplayFiberPath(HHname){
             }
           }
           if(temp.length != 0){
-            console.log('arr1: ',arr1)
-            let newCableName = `${arr1[len][1]}_to_${arr1[len][2]}`
+            let len_2 = temp.length - 1
+            let newCableName = `${arr1[len_2][1]}_to_${arr1[len_2][2]}`
             if(Object.keys(path_FibertoPS).includes(newCableName)){
-              path_FibertoPS[newCableName][arr1[len][0]] = temp
+              path_FibertoPS[newCableName][arr1[len_2][0]] = temp
             }
             else{
               let dict = {[arr1[len][0]]:temp}
               path_FibertoPS[newCableName] = dict
             }
-            
           }
         }
       }
@@ -1991,7 +2134,15 @@ function DisplayFiberPath(HHname){
         }
       }
       content += `</table><br>`
-    }   
+    }
+    if(Object.keys(path_FibertoPS).length != 0){
+      //content =  mergeRowsBySGAndHH(content)
+      //content = resetRowNumbering(content)
+      //content = modifyRowspan(content)
+    }
+    else{
+      content = ''
+    }
     return content
   }
 
