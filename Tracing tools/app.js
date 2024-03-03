@@ -33,6 +33,7 @@ map.on('mousemove', function (e) {
 });
 
 function AddNewLayer(event) {
+    var WrongSplicingData =[]
     function findHHforEachFeature(newlayer){
         // Function to find the shortest distance and corresponding "HH" value
         function findShortestDistanceAndHH(targetCoord, coordArray) {
@@ -107,11 +108,62 @@ function AddNewLayer(event) {
             if(result.length > 0){
                 if(!result.includes('Unknown Network Point')){
                     for(i=0; i < 2; i++){
+                        let isResult = false
                         if(i == 0){
                             for(let word in HH_Before[result[1]]['Info']){
                                 let arr = HH_Before[result[1]]['Info'][word]
                                 if(arr[0] == result[3] && arr[4] == result[2]){
                                     arr[5] = result[0]
+                                    isResult = true
+                                    break
+                                }
+                            }
+                            if(isResult == false){
+                                WrongSplicingData.push([result[1],result[3]])
+                                //change dekat HHbefore[info]
+                                for(let word in HH_Before[result[1]]['Info']){
+                                    let arr = HH_Before[result[1]]['Info'][word]
+                                    if(arr[0] == result[3] && arr[4] != result[2] && arr[5] == undefined){
+                                        let oldCablername = `${arr[0]}_to_${arr[4]}`
+                                        let newCableName = `${arr[0]}_to_${result[2]}`
+                                        arr[4] = result[2]
+                                        arr[5] = result[0]
+                                        //change equipment
+                                        if(HH_Before[result[1]]['Equipment'][oldCablername]){
+                                            HH_Before[result[1]]['Equipment'][newCableName] = HH_Before[result[1]]['Equipment'][oldCablername]
+                                            delete HH_Before[result[1]]['Equipment'][oldCablername]
+                                        }
+                                        //change passthrough
+                                        if(HH_Before[result[1]]['Passthrough'].includes(oldCablername)){
+                                            let passthrough = HH_Before[result[1]]['Passthrough']
+                                            let newpassthrough = []
+                                            for (let i = 0; i < passthrough.length; i++){
+                                                if(passthrough[i] == oldCablername){
+                                                    newpassthrough.push(newCableName)
+                                                }
+                                                else{
+                                                    newpassthrough.push(passthrough[i])
+                                                }
+                                            }
+                                            HH_Before[result[1]]['Passthrough'] = newpassthrough
+                                        }
+                                        //change name inside spliceinfo
+                                        for(let cablename in HH_Before[result[1]]['SpliceInfo']){
+                                            for(let i =0; i< HH_Before[result[1]]['SpliceInfo'][cablename].length; i++){
+                                                let arr = HH_Before[result[1]]['SpliceInfo'][cablename][i]
+                                                for(let j=0; j< arr.length; j++){
+                                                    if(arr[j] == oldCablername){
+                                                        arr[j] = newCableName
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        //change SpliceInfo
+                                        if(HH_Before[result[1]]['SpliceInfo'][oldCablername]){
+                                            HH_Before[result[1]]['SpliceInfo'][newCableName] = HH_Before[result[1]]['SpliceInfo'][oldCablername]
+                                            delete HH_Before[result[1]]['SpliceInfo'][oldCablername]
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -120,7 +172,11 @@ function AddNewLayer(event) {
                                 let arr = HH_Before[result[2]]['Info'][word]
                                 if(arr[0] == result[3] && arr[4] == result[1]){
                                     arr[5] = result[0]
+                                    isResult = true
                                 }
+                            }
+                            if(isResult == false){
+                                WrongSplicingData.push(result[1])
                             }
                         }
                     }
@@ -134,6 +190,10 @@ function AddNewLayer(event) {
                     }
                 }
             }
+        }
+        //recall the function for fiber splicing
+        if(WrongSplicingData.length > 0){
+            TraceFiber()
         }
         //assign feature ID into HHtoObserve
         for(let HH in HHtoObserve){
@@ -153,7 +213,6 @@ function AddNewLayer(event) {
                 }
             }
         }
-
         //assign feature ID into incoming fiber from PS
         function findLayerID(arr){
             let HH = arr[2]
@@ -165,7 +224,6 @@ function AddNewLayer(event) {
               if(temp[word][0] == cable && temp[word][4] == fromHH){
                 return temp[word][5]
               }
-              
             }
         }
         for(let HH in hhFromPS){
@@ -180,7 +238,6 @@ function AddNewLayer(event) {
                 }
             }
         }
-
     }
     if(HH_coordinate.length> 0){
         var newlayer = L.geoJSON(null, {

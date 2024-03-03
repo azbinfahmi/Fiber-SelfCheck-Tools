@@ -2,6 +2,7 @@ let workbook_arr = {}, FileName=[], cableInfo ={}, HH_Before =[], HHlayer =[], h
 HH_coordinate =[],eqFromCableSheet = {}, HHtoObserve = {}, hhFromPS = {}, storeHHColor = [],
 duplicateHH = [], showDuplicateHH = [], legendItems =[]
 var freeze = false
+var legendControl
 
 //kalau desc tu exist
 function itemExists(item, legendItems) {
@@ -1418,6 +1419,7 @@ function AddHHintoMap(){
 
 let failTracingHH = []
 function TraceFiber(){ 
+  failTracingHH = []
   function extractFiberValuePS(arr){
     let result = []
     for(let i = 0; i < arr.length; i++){
@@ -1757,7 +1759,10 @@ function TraceFiber(){
   }
   console.log('failTracingHH: ',failTracingHH)
 }
-function CreateLegend(){
+
+function CreateLegend(){ 
+  //check legend dah wujud ka belum
+  
   // Initialize legendContent with the legend container opening tag
   let legendContent = '<div class="legend">' +
                     '<table id="legend-table">';
@@ -1781,13 +1786,14 @@ function CreateLegend(){
                 '</div>';
   let legendControl = L.control({position: 'bottomright'});
   // Define onAdd method for custom control
+  
   legendControl.onAdd = function (map) {
     var div = L.DomUtil.create('div', 'info legend');
     div.innerHTML = legendContent;
     return div;
   };
   legendControl.addTo(map);
-
+  
   function toggleLegend() {
     let legendHH = document.querySelector('.legend');
     if (legendHH.style.display === 'none') {
