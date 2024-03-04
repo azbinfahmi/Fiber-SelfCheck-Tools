@@ -324,7 +324,6 @@ function StoreSplicingInfo(){
         }
         const totalCable = CheckCableAttach(workbook.SheetNames)
         workbook.SheetNames.forEach(sheetName => {
-
           if(sheetName.includes('DR') || sheetName.includes('Drop')){
             storeDR.push(sheetName)
           }
@@ -362,7 +361,6 @@ function StoreSplicingInfo(){
                 acc[key] = obj[key];
                 return acc;
               }, {});
-  
               if (!cableInfo[key]) {
                 if(totalCable == workbook.SheetNames){
                   cableInfo[key] = { 'Info': {}, 'SpliceInfo': {}, 'coordinates': []};
@@ -462,7 +460,6 @@ function StoreSplicingInfo(){
             let dictSpliceInfo ={}, EqInfo = {}
             dictSpliceInfo[newCableName] = tempSpliceInfo_arr
             EqInfo[newCableName] = storeEQ_arr
-            
             // Merge the new SpliceInfo values with existing ones
             Object.assign(cableInfo[key]['SpliceInfo'], dictSpliceInfo);
             Object.assign(eqFromCableSheet[key]['EqInfo'], EqInfo);
@@ -472,6 +469,16 @@ function StoreSplicingInfo(){
             }
           }
           else if(sheetName == "Equipment"){
+            if (!cableInfo[key]) {
+              if(totalCable == workbook.SheetNames){
+                cableInfo[key] = { 'Info': {}, 'SpliceInfo': {}, 'coordinates': []};
+                eqFromCableSheet[key] = { 'EqInfo':{}, 'EqInfo_Edited':{}}
+              }
+              else{
+                cableInfo[key] = { 'Info': {}, 'SpliceInfo': {}, 'Equipment': {}, 'coordinates': [], 'Drop':[]};
+                eqFromCableSheet[key] = { 'EqInfo':{}, 'EqInfo_Edited':{}}
+              }
+            }
             let Eqconnect
             const sheet = workbook.Sheets[sheetName];
             const maxrow = sheet['!ref'].match(/(\d+)$/)[1]
@@ -509,6 +516,8 @@ function StoreSplicingInfo(){
                     }
                     //ni Secondary Splitter kalau dia connect dengan drop
                     if(fOutVal.includes('DR') || fOutVal.includes('Drop')){
+                      console.log('key: ',key)
+                      console.log('cableInfo: ',cableInfo[key])
                       if(cableInfo[key]['Drop'].includes(fOutVal)){
                         let drop = cableInfo[key]['Drop']
                         cableInfo[key]['Drop'] = drop.filter(value => value !== fOutVal)

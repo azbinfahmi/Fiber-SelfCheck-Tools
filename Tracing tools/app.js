@@ -77,7 +77,55 @@ function AddNewLayer(event) {
             let distance_in_cm = (shortestDistance*1000000).toFixed(2)
             return [ distance_in_cm, nearestHH ];
         }
-
+        //insert layer ID and fix
+        function insertLayersID (result){
+            //change dekat HHbefore[info]
+            for(let word in HH_Before[result[0]]['Info']){
+                let arr = HH_Before[result[0]]['Info'][word]
+                if(arr[0] == result[1] && arr[5] == undefined){
+                    let oldCablername = `${arr[0]}_to_${arr[4]}`
+                    let newCableName = `${arr[0]}_to_${result[2]}`
+                    arr[4] = result[2]
+                    arr[5] = result[3]
+                    //change equipment
+                    if(HH_Before[result[0]]['Equipment'][oldCablername]){
+                        HH_Before[result[0]]['Equipment'][newCableName] = HH_Before[result[0]]['Equipment'][oldCablername]
+                        delete HH_Before[result[0]]['Equipment'][oldCablername]
+                    }
+                    //change passthrough
+                    if(HH_Before[result[0]]['Passthrough'].includes(oldCablername)){
+                        let passthrough = HH_Before[result[0]]['Passthrough']
+                        let newpassthrough = []
+                        for (let i = 0; i < passthrough.length; i++){
+                            if(passthrough[i] == oldCablername){
+                                newpassthrough.push(newCableName)
+                            }
+                            else{
+                                newpassthrough.push(passthrough[i])
+                            }
+                        }
+                        HH_Before[result[0]]['Passthrough'] = newpassthrough
+                    }
+                    //change name inside spliceinfo
+                    for(let cablename in HH_Before[result[0]]['SpliceInfo']){
+                        for(let i =0; i< HH_Before[result[0]]['SpliceInfo'][cablename].length; i++){
+                            let arr = HH_Before[result[0]]['SpliceInfo'][cablename][i]
+                            for(let j=0; j< arr.length; j++){
+                                if(arr[j] == oldCablername){
+                                    arr[j] = newCableName
+                                }
+                            }
+                        }
+                    }
+                    //change SpliceInfo
+                    if(HH_Before[result[0]]['SpliceInfo'][oldCablername]){
+                        HH_Before[result[0]]['SpliceInfo'][newCableName] = HH_Before[result[0]]['SpliceInfo'][oldCablername]
+                        delete HH_Before[result[0]]['SpliceInfo'][oldCablername]
+                    }
+                }
+            }
+        }
+        
         let all_feature = newlayer._layers
         for(let layersID in all_feature){
             let result
@@ -119,52 +167,7 @@ function AddNewLayer(event) {
                                 }
                             }
                             if(isResult == false){
-                                WrongSplicingData.push([result[1],result[3]])
-                                //change dekat HHbefore[info]
-                                for(let word in HH_Before[result[1]]['Info']){
-                                    let arr = HH_Before[result[1]]['Info'][word]
-                                    if(arr[0] == result[3] && arr[4] != result[2] && arr[5] == undefined){
-                                        let oldCablername = `${arr[0]}_to_${arr[4]}`
-                                        let newCableName = `${arr[0]}_to_${result[2]}`
-                                        arr[4] = result[2]
-                                        arr[5] = result[0]
-                                        //change equipment
-                                        if(HH_Before[result[1]]['Equipment'][oldCablername]){
-                                            HH_Before[result[1]]['Equipment'][newCableName] = HH_Before[result[1]]['Equipment'][oldCablername]
-                                            delete HH_Before[result[1]]['Equipment'][oldCablername]
-                                        }
-                                        //change passthrough
-                                        if(HH_Before[result[1]]['Passthrough'].includes(oldCablername)){
-                                            let passthrough = HH_Before[result[1]]['Passthrough']
-                                            let newpassthrough = []
-                                            for (let i = 0; i < passthrough.length; i++){
-                                                if(passthrough[i] == oldCablername){
-                                                    newpassthrough.push(newCableName)
-                                                }
-                                                else{
-                                                    newpassthrough.push(passthrough[i])
-                                                }
-                                            }
-                                            HH_Before[result[1]]['Passthrough'] = newpassthrough
-                                        }
-                                        //change name inside spliceinfo
-                                        for(let cablename in HH_Before[result[1]]['SpliceInfo']){
-                                            for(let i =0; i< HH_Before[result[1]]['SpliceInfo'][cablename].length; i++){
-                                                let arr = HH_Before[result[1]]['SpliceInfo'][cablename][i]
-                                                for(let j=0; j< arr.length; j++){
-                                                    if(arr[j] == oldCablername){
-                                                        arr[j] = newCableName
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        //change SpliceInfo
-                                        if(HH_Before[result[1]]['SpliceInfo'][oldCablername]){
-                                            HH_Before[result[1]]['SpliceInfo'][newCableName] = HH_Before[result[1]]['SpliceInfo'][oldCablername]
-                                            delete HH_Before[result[1]]['SpliceInfo'][oldCablername]
-                                        }
-                                    }
-                                }
+                                WrongSplicingData.push([result[1],result[3],result[2],result[0]])
                             }
                         }
                         else{
@@ -176,7 +179,7 @@ function AddNewLayer(event) {
                                 }
                             }
                             if(isResult == false){
-                                WrongSplicingData.push(result[1])
+                                WrongSplicingData.push([result[2],result[3],result[1],result[0]])
                             }
                         }
                     }
@@ -191,6 +194,11 @@ function AddNewLayer(event) {
                 }
             }
         }
+        for(let i = 0; i < WrongSplicingData.length; i++){
+            let result = WrongSplicingData[i]
+            insertLayersID(result)
+        }
+        console.log('WrongSplicingData: ',WrongSplicingData)
         //recall the function for fiber splicing
         if(WrongSplicingData.length > 0){
             TraceFiber()
