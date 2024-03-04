@@ -759,6 +759,7 @@ function StoreSplicingInfo(){
     console.log('eqFromCableSheet: ',eqFromCableSheet)
     return cableInfo
 }
+
 //add HH into Map
 function AddHHintoMap(){
     function convertToTable(description, arr_fibers) {
@@ -1424,9 +1425,9 @@ function AddHHintoMap(){
     map.setView([lat, long], zoomLevel);
 }
 
-let failTracingHH = []
+let failTracingHH = [], newlegendItems =[]
 function TraceFiber(){ 
-  failTracingHH = []
+  failTracingHH = [], newlegendItems =[] 
   function extractFiberValuePS(arr){
     let result = []
     for(let i = 0; i < arr.length; i++){
@@ -1750,12 +1751,6 @@ function TraceFiber(){
         })
       }
       if(HH_Before[HHlayer[i].properties.name]['Drop'].length > 0){
-        // let desc = 'HH with Unconnected Drop'
-        // let colors = HHlayer[i].options.color
-        // let arr = ['#666a6e',colors, desc]
-        // if (!itemExists(arr, legendItems)) {
-        //     legendItems.push(arr);
-        // }
         HHlayer[i].setStyle({
           fillColor : '#666a6e'
         })
