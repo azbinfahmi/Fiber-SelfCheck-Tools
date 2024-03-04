@@ -516,8 +516,6 @@ function StoreSplicingInfo(){
                     }
                     //ni Secondary Splitter kalau dia connect dengan drop
                     if(fOutVal.includes('DR') || fOutVal.includes('Drop')){
-                      console.log('key: ',key)
-                      console.log('cableInfo: ',cableInfo[key])
                       if(cableInfo[key]['Drop'].includes(fOutVal)){
                         let drop = cableInfo[key]['Drop']
                         cableInfo[key]['Drop'] = drop.filter(value => value !== fOutVal)
