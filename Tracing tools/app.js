@@ -77,7 +77,7 @@ function AddNewLayer(event) {
             let distance_in_cm = (shortestDistance*1000000).toFixed(2)
             return [ distance_in_cm, nearestHH ];
         }
-        //insert layer ID and fix
+        //insert layer ID and fix HH that used old fibername
         function insertLayersID (result){
             //change dekat HHbefore[info]
             for(let word in HH_Before[result[0]]['Info']){
@@ -122,10 +122,30 @@ function AddNewLayer(event) {
                         HH_Before[result[0]]['SpliceInfo'][newCableName] = HH_Before[result[0]]['SpliceInfo'][oldCablername]
                         delete HH_Before[result[0]]['SpliceInfo'][oldCablername]
                     }
+                    //change name dekat HHtoObserve
+                    // for(let HHdts in HHtoObserve){
+                    //     for(let i = 0; i < HHtoObserve[HHdts]['DTS'].length; i++){
+                    //         let DtsCableName = HHtoObserve[HHdts]['DTS'][i][1]
+                    //         if(DtsCableName == oldCablername){
+                    //             console.log('ada boss')
+                    //             HHtoObserve[HHdts]['DTS'][i][1] = newCableName
+                    //         }
+                    //     }
+                    // }
+                    console.log("HHtoObserve[result[0]]: ",HHtoObserve[result[0]])
+                    if(HHtoObserve[result[0]]){
+                        for(let i = 0; i < HHtoObserve[result[0]]['DTS'].length; i++){
+                            let DtsCableName = HHtoObserve[result[0]]['DTS'][i][1]
+                            if(DtsCableName == oldCablername){
+                                console.log('ada boss')
+                                HHtoObserve[result[0]]['DTS'][i][1] = newCableName
+                            }
+                        }
+                    }
+                    
                 }
             }
         }
-        
         let all_feature = newlayer._layers
         for(let layersID in all_feature){
             let result
@@ -149,7 +169,6 @@ function AddNewLayer(event) {
                 HH2 = 'Unknown Network Point'
                 result = [layersID,HH1,HH2,cableName]
             }
-
             if(dist1>150 && dist2>150){
                 result =[]
             }     

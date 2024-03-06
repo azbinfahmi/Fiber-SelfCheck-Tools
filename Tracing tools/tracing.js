@@ -782,7 +782,6 @@ function AddHHintoMap(){
   
       return tablesHTML.join('<br>');
     }
-  
     function findDirection(HHName,fiberName){
       const splitNames = fiberName.split('_to_');
       let namecable = splitNames[0]
@@ -801,7 +800,6 @@ function AddHHintoMap(){
         }
       }
     }
-  
     function groupConsecutiveNumbersWithSameValue(arr) {
       let result = [];
       let start = parseInt(arr[0][0]);
@@ -863,7 +861,6 @@ function AddHHintoMap(){
   
       return result;
     }
-  
     function extractFOC(inputString) {
       const splitNames = inputString.split('_to_');
       let namecable = splitNames[0]
@@ -1000,7 +997,6 @@ function AddHHintoMap(){
             }
           }
         }
-
         //highlight cable yang tak sama length
         if(diffLength){
           console.log('shortestKey: ',shortestKey)
@@ -1109,6 +1105,8 @@ function AddHHintoMap(){
             let direction = findDirection(name,fibername)
             let directionIn = direction[0]
             let countIn = direction[1]
+            //let layersID = direction[2]
+            
             let foc_in = extractFOC(fibername)
             let foc_out = extractFOC(arr[i][2])
             if(arr[i][2] === "Equipment"){
@@ -1351,42 +1349,10 @@ function AddHHintoMap(){
       if (!itemExists(arr, legendItems)) {
           legendItems.push(arr);
       }
-      if(HHtoObserve[name]){
-        color = 'blue'
-        fillColor = 'lightblue'
-        let desc = 'HH with DTS'
-        let arr = [fillColor,color,desc]
-        if (!itemExists(arr, legendItems)) {
-            legendItems.push(arr);
-        }
-      }
       if(HH_coordinate[hh_index][3] == 'PS'){
-        color = 'white'
-        fillColor = 'black'
         hh_PS.push((HH_coordinate[hh_index][0]))
-        let desc = 'HH with PS'
-        let arr = [fillColor,color,desc]
-        if (!itemExists(arr, legendItems)) {
-            legendItems.push(arr);
-        }
       }
-      if(duplicateHH.includes(HH_coordinate[hh_index][0])){
-        color = 'purple'
-        fillColor = '#CBC3E3'
-        let desc = 'Duplicate HH'
-        let arr = [fillColor,color,desc]
-        if (!itemExists(arr, legendItems)) {
-            legendItems.push(arr);
-        }
-      }
-      if(HH_Before[name]['Drop'].length>0){
-        fillColor = '#666a6e'
-        let desc = 'HH with unconnected drop'
-        let arr = [fillColor,color,desc]
-        if (!itemExists(arr, legendItems)) {
-            legendItems.push(arr);
-        }
-      }
+
       geo_HHlayer = L.circleMarker([lat, lon], {
         radius: 8,
         color: color,
@@ -1714,6 +1680,72 @@ function TraceFiber(){
     }
   }
   console.log('hhFromPS: ',hhFromPS)
+
+  //color HH back to normal
+  legendItems = []
+  for(let i = 0; i< HHlayer.length; i++){
+    let HHName = HHlayer[i].properties.name
+    let color = 'green'
+    let fillColor = 'rgb(144, 238, 144)' //lightgreen
+    let desc = 'HH with no Equipment'
+    let arr = [fillColor,color,desc]
+    if (!itemExists(arr, legendItems)) {
+        legendItems.push(arr);
+    }
+    // if(duplicateHH.includes(HHName)){
+    //   color = 'purple'
+    //   fillColor = '#CBC3E3'
+    //   let desc = 'Duplicate HH'
+    //   let arr = [fillColor,color,desc]
+    //   if (!itemExists(arr, legendItems)) {
+    //       legendItems.push(arr);
+    //   }
+    //   HHlayer[i].setStyle({
+    //     color: color,
+    //     fillColor: fillColor
+    //   })
+    // }
+    if(HHtoObserve[HHName]){
+      color = 'blue'
+      fillColor = 'lightblue'
+      let desc = 'HH with DTS'
+      let arr = [fillColor,color,desc]
+      if (!itemExists(arr, legendItems)) {
+          legendItems.push(arr);
+      }
+      HHlayer[i].setStyle({
+        color: color,
+        fillColor: fillColor
+      })
+    }
+    if(hh_PS.includes(HHName)){
+      color = 'white'
+      fillColor = 'black'
+      let desc = 'HH with PS'
+      let arr = [fillColor,color,desc]
+      if (!itemExists(arr, legendItems)) {
+          legendItems.push(arr);
+      }
+      HHlayer[i].setStyle({
+        color: color,
+        fillColor: fillColor
+      })
+    }
+    if(HH_Before[HHName]['Drop'].length>0){
+      fillColor = '#666a6e'
+      let desc = 'HH with unconnected drop'
+      let arr = [fillColor,color,desc]
+      if (!itemExists(arr, legendItems)) {
+          legendItems.push(arr);
+      }
+      HHlayer[i].setStyle({
+        color: color,
+        fillColor: fillColor
+      })
+    }
+    storeHHColor[i] = [HHlayer[i].properties.name, HHlayer[i].options.color, HHlayer[i].options.fillColor]
+  }
+
   //highlight the wrong HH
   for(let i = 0; i< HHlayer.length; i++){
     if(failTracingHH.includes(HHlayer[i].properties.name)){
@@ -1726,25 +1758,12 @@ function TraceFiber(){
         color: 'blue',
         fillColor: 'rgb(255, 128, 128)'
       })
-
-      if(duplicateHH.includes(HHlayer[i].properties.name)){
-        let desc = 'Duplicate HH'
-        let colors = HHlayer[i].options.color
-        let arr = ['purple',colors, desc]
-        if (!itemExists(arr, legendItems)) {
-            legendItems.push(arr);
-        }
-        HHlayer[i].setStyle({
-          fillColor: 'purple',
-        })
-      }
       if(hh_PS.includes(HHlayer[i].properties.name)){
         let desc = 'Primary HH with no Trace DTS'
         let arr = ['rgb(255, 128, 128)','white',desc]
         if (!itemExists(arr, legendItems)) {
             legendItems.push(arr);
         }
-
         HHlayer[i].setStyle({
           color: 'white',
           fillColor: 'rgb(255, 128, 128)'
