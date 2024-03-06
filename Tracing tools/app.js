@@ -87,6 +87,18 @@ function AddNewLayer(event) {
                     let newCableName = `${arr[0]}_to_${result[2]}`
                     arr[4] = result[2]
                     arr[5] = result[3]
+
+                    //change name dalam equipment
+                    for(let cablename in HH_Before[result[0]]['Equipment']){
+                        for(let fin in HH_Before[result[0]]['Equipment'][cablename]){
+                            let arr_fin = HH_Before[result[0]]['Equipment'][cablename][fin]
+                            for(let i =0; i < arr_fin.length; i++){
+                                if(arr_fin[i].length == 4 && arr_fin[i][3] == oldCablername){
+                                    HH_Before[result[0]]['Equipment'][cablename][fin][i][3] = newCableName
+                                }
+                            }
+                        }
+                    }
                     //change equipment
                     if(HH_Before[result[0]]['Equipment'][oldCablername]){
                         HH_Before[result[0]]['Equipment'][newCableName] = HH_Before[result[0]]['Equipment'][oldCablername]
@@ -123,26 +135,14 @@ function AddNewLayer(event) {
                         delete HH_Before[result[0]]['SpliceInfo'][oldCablername]
                     }
                     //change name dekat HHtoObserve
-                    // for(let HHdts in HHtoObserve){
-                    //     for(let i = 0; i < HHtoObserve[HHdts]['DTS'].length; i++){
-                    //         let DtsCableName = HHtoObserve[HHdts]['DTS'][i][1]
-                    //         if(DtsCableName == oldCablername){
-                    //             console.log('ada boss')
-                    //             HHtoObserve[HHdts]['DTS'][i][1] = newCableName
-                    //         }
-                    //     }
-                    // }
-                    console.log("HHtoObserve[result[0]]: ",HHtoObserve[result[0]])
                     if(HHtoObserve[result[0]]){
                         for(let i = 0; i < HHtoObserve[result[0]]['DTS'].length; i++){
                             let DtsCableName = HHtoObserve[result[0]]['DTS'][i][1]
                             if(DtsCableName == oldCablername){
-                                console.log('ada boss')
                                 HHtoObserve[result[0]]['DTS'][i][1] = newCableName
                             }
                         }
                     }
-                    
                 }
             }
         }
@@ -221,6 +221,7 @@ function AddNewLayer(event) {
         //recall the function for fiber splicing
         if(WrongSplicingData.length > 0){
             TraceFiber()
+            CreateLegend()
         }
         //assign feature ID into HHtoObserve
         for(let HH in HHtoObserve){

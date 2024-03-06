@@ -1450,7 +1450,6 @@ function TraceFiber(){
       index_2++
     }
   }
-  //console.log('hh_PS: ',hh_PS)
   console.log('HHtoObserve: ',HHtoObserve)
 
   //store PS fiber and cable out
@@ -1579,14 +1578,36 @@ function TraceFiber(){
       HHtoObserve[HH]['Fail'] = temp_fail
     }
   }
+
   //store HH if primary doesnt exist in HHfromPS
   for(let i = 0; i < hh_PS.length; i++){
+    //get unique cableOut
+    let unique_CableOut = []
+    let arr = HH_Before[hh_PS[i]]['PS']
+    for(let j = 0; j < arr.length; j++ ){
+      if(!unique_CableOut.includes(arr[j][1]) && arr[j][0] != 0){
+        unique_CableOut.push(arr[j][1])
+      }
+    }
+    //assign missing cable
     const keys = Object.keys(hhFromPS);
     if(!keys.includes(hh_PS[i])){
-      hhFromPS[hh_PS[i]] ={}
-
+      for(let j = 0; j < unique_CableOut.length; j++){
+        temp_dict = {[unique_CableOut[j]] : {}}
+        hhFromPS[hh_PS[i]] = temp_dict
+      }
+    }
+    else{
+      for(let j = 0; j < unique_CableOut.length; j++){
+        let cableKeys = Object.keys( hhFromPS[hh_PS[i]])
+        if(!cableKeys.includes(unique_CableOut[j])){
+          temp_dict = {[unique_CableOut[j]] : {}}
+          hhFromPS[hh_PS[i]] = temp_dict
+        }
+      }
     }
   }
+
   console.log('hh_PS: ',hh_PS)
   //Find end HH for incoming fiber in PS
   for(let HH in hhFromPS){
@@ -1745,7 +1766,6 @@ function TraceFiber(){
     }
     storeHHColor[i] = [HHlayer[i].properties.name, HHlayer[i].options.color, HHlayer[i].options.fillColor]
   }
-
   //highlight the wrong HH
   for(let i = 0; i< HHlayer.length; i++){
     if(failTracingHH.includes(HHlayer[i].properties.name)){
@@ -1783,7 +1803,10 @@ function TraceFiber(){
 
 function CreateLegend(){ 
   //check legend dah wujud ka belum
-  
+  let existingLegendControl = map._controlCorners['bottomright'].querySelector('.legend');
+  if (existingLegendControl){
+    existingLegendControl.remove();
+  }
   // Initialize legendContent with the legend container opening tag
   let legendContent = '<div class="legend">' +
                     '<table id="legend-table">';
