@@ -285,7 +285,6 @@ function StoreSplicingInfo(){
   
       return result;
     }
-
     function extractNameFromPath(path) {
       // Split the path by '/'
       let parts = path.split('/');

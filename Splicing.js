@@ -1,5 +1,5 @@
 let workbook_arr = {}, FileName=[], cableInfo ={}, HH_Before =[], HH_After =[], HHlayer =[]
-checkError ={'Equipment':[],'Splicing':[]}, HH_coordinate =[],eqFromCableSheet = {}
+checkError ={'Equipment':[],'Splicing':[]}, HH_coordinate =[],eqFromCableSheet = {}, duplicateHH = []
 
 function handleZipFile_before() {
   function cleanFileName(fileName) {
@@ -313,7 +313,7 @@ function StoreSplicingInfo(){
     }
   }
 
-  let cableInfo ={}
+  let cableInfo ={}, checkHHname = [], nameHH = 1, duplicateHH = []
   for (let key in workbook_arr) {
     let coord =[]
     if (workbook_arr.hasOwnProperty(key)) {
@@ -322,6 +322,16 @@ function StoreSplicingInfo(){
       key_name = key_name.replace(/_[0-9]+$/, '').split('_')
       key = key.replace(/_[0-9]+$/, '')
       key = key_name[key_name.length-1].replace(/_[0-9]+$/, '')
+      if(!checkHHname.includes(key)){
+        checkHHname.push(key)
+      }
+      else{
+        console.log('key: ',key)
+        duplicateHH.push(key)
+        key = `${key}_${nameHH}`
+        //duplicateHH.push(key)
+        nameHH+=1
+      }
       const totalCable = CheckCableAttach(workbook.SheetNames)
       workbook.SheetNames.forEach(sheetName => {
         if(sheetName.includes('DR') || sheetName.includes('Drop')){
@@ -741,7 +751,6 @@ function AddHHintoMap(){
 
     return tablesHTML.join('<br>');
   }
-
   function findDirection(HHName,fiberName){
     const splitNames = fiberName.split('_to_');
     let namecable = splitNames[0]
@@ -754,7 +763,6 @@ function AddHHintoMap(){
       }
     }
   }
-
   function groupConsecutiveNumbersWithSameValue(arr) {
     let result = [];
     let start = parseInt(arr[0][0]);
@@ -796,7 +804,6 @@ function AddHHintoMap(){
 
     return result;
   }
-
   function extractFOC(inputString) {
     const splitNames = inputString.split('_to_');
     let namecable = splitNames[0]
@@ -820,7 +827,6 @@ function AddHHintoMap(){
     }
     
   }
-
   function findDuplicateNames(data) {
     const names = {};
     const duplicateNames = [];
@@ -839,7 +845,7 @@ function AddHHintoMap(){
     return duplicateNames;
   }
   //find the duplicate name of HH
-  let duplicateHH = findDuplicateNames(HH_coordinate)
+  //let duplicateHH = findDuplicateNames(HH_coordinate)
   console.log('duplicateHH: ',duplicateHH)
   let popup = ''
   if(duplicateHH.length > 0){
@@ -964,7 +970,7 @@ function AddHHintoMap(){
           }
         }
         temp_arrfibers2.push(temp_arrfibers)
-      }
+      }     
       fibername = `${fname}(${dir[0]})`
       description += '<strong>' + fibername + '</strong>'
       arr_fibers[fibername] = temp_arrfibers2
@@ -1088,11 +1094,6 @@ function AddHHintoMap(){
       color = 'white'
       fillColor = 'black'
     }
-    if(duplicateHH.includes(HH_coordinate[hh_index][0])){
-      color = 'purple'
-      fillColor = 'purple'
-    }
-
     geo_HHlayer = L.circleMarker([lat, lon], {
       radius: 8,
       color: color,
