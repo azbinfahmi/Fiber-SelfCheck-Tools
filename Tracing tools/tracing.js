@@ -1600,10 +1600,10 @@ function TraceFiber(){
     }
     else{
       for(let j = 0; j < unique_CableOut.length; j++){
-        let cableKeys = Object.keys( hhFromPS[hh_PS[i]])
+        let cableKeys = Object.keys(hhFromPS[hh_PS[i]])
         if(!cableKeys.includes(unique_CableOut[j])){
           temp_dict = {[unique_CableOut[j]] : {}}
-          hhFromPS[hh_PS[i]] = temp_dict
+          Object.assign(hhFromPS[hh_PS[i]], temp_dict)
         }
       }
     }
