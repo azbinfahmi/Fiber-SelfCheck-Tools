@@ -456,7 +456,6 @@ function StoreSplicingInfo(){
                     }
                     //continue
                   }
-
                   if(tempSpliceInfo.length>0){
                     tempSpliceInfo_arr.push(tempSpliceInfo.flat())
                   }

@@ -326,6 +326,7 @@ function StoreSplicingInfo(){
           if(sheetName.includes('DR') || sheetName.includes('Drop')){
             storeDR.push(sheetName)
           }
+          //else if(sheetName != "Equipment" && sheetName.includes('(1)'))
           else if(sheetName != "Equipment"){
             let tempCable=[]
             let tempSpliceInfo_arr =[], storeEQ_arr = []
@@ -467,6 +468,7 @@ function StoreSplicingInfo(){
               Object.assign(cableInfo[key]['Drop'], storeDR);
             }
           }
+          //else if(sheetName == "Equipment" && !sheetName.includes('(1)'))
           else if(sheetName == "Equipment"){
             if (!cableInfo[key]) {
               if(totalCable == workbook.SheetNames){
