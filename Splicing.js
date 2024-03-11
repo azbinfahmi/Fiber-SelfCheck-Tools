@@ -1128,150 +1128,237 @@ function AddHHintoMap(){
 function CompareSplicing(){
   for (let HH in HH_Before){
     //compare equipment before and after
-    let EqBfr = Object.keys(HH_Before[HH]["Equipment"])
-    let EqAftr = Object.keys(HH_After[HH]["Equipment"])
-    let temp_checkError_Equipment = []
-    if(EqBfr.length != EqAftr.length){
-      temp_checkError_Equipment.push(HH,'The Equipment somehow exist here?')
-      checkError['Equipment'].push(temp_checkError_Equipment)
-    }
-    for(let keys in HH_Before[HH]["Equipment"]){
-      let temp_checkError =[]
-      let inputLength_Before = Object.keys(HH_Before[HH]["Equipment"]).length
-      let inputLength_After = Object.keys(HH_After[HH]["Equipment"]).length
-
-      if(inputLength_Before != inputLength_After){
-        if(inputLength_After == 0){
-          temp_checkError.push(HH,'The Equipment doesnt have fiber input')
-        }
-        else{
-          temp_checkError.push(HH,'One of the cable have wrong fiber input')
-        }
+    if(Object.keys(HH_Before[HH]['SpliceInfo'])[0].includes('FOC')){
+      let EqBfr = Object.keys(HH_Before[HH]["Equipment"])
+      let EqAftr = Object.keys(HH_After[HH]["Equipment"])
+      let temp_checkError_Equipment = []
+      if(EqBfr.length != EqAftr.length){
+        temp_checkError_Equipment.push(HH,'The Equipment somehow exist here?')
+        checkError['Equipment'].push(temp_checkError_Equipment)
       }
-
-      else{
-        let temp_arrAfter = []
-        for(let keys_2 in HH_After[HH]["Equipment"]){
-          let nameHHto1 = keys.split(`_to_`)
-          let nameHHto2 = keys_2.split(`_to_`)
-          let LAorBB1 = nameHHto1[0]
-          let LAorBB2 = nameHHto2[0]
-          if(nameHHto1[0].includes('LA-')){
-            LAorBB1 = 'LA'
+      for(let keys in HH_Before[HH]["Equipment"]){
+        let temp_checkError =[]
+        let inputLength_Before = Object.keys(HH_Before[HH]["Equipment"]).length
+        let inputLength_After = Object.keys(HH_After[HH]["Equipment"]).length
+  
+        if(inputLength_Before != inputLength_After){
+          if(inputLength_After == 0){
+            temp_checkError.push(HH,'The Equipment doesnt have fiber input')
           }
-          else if (nameHHto1[0].includes('BB')){
-            LAorBB1 = 'BB'
+          else{
+            temp_checkError.push(HH,'One of the cable have wrong fiber input')
           }
-          if(nameHHto2[0].includes('LA-')){
-            LAorBB2 = 'LA'
-          }
-          else if (nameHHto2[0].includes('BB')){
-            LAorBB2 = 'BB'
-          }
-          let len1 = Object.keys(HH_Before[HH]["Equipment"][keys])
-          let len2 = Object.keys(HH_After[HH]["Equipment"][keys_2])
-          if(nameHHto1[0] == nameHHto2[0] && len1.length == len2.length && LAorBB1 == LAorBB2 ){
-            let sameValue = false
-            for(let i = 0; i < len1.length; i++){
-              if(len1[i] == len2[i]){
-                sameValue = true
+        }
+  
+        else{
+          let temp_arrAfter = []
+          for(let keys_2 in HH_After[HH]["Equipment"]){
+            let nameHHto1 = keys.split(`_to_`)
+            let nameHHto2 = keys_2.split(`_to_`)
+            let LAorBB1 = nameHHto1[0]
+            let LAorBB2 = nameHHto2[0]
+            if(nameHHto1[0].includes('LA-')){
+              LAorBB1 = 'LA'
+            }
+            else if (nameHHto1[0].includes('BB')){
+              LAorBB1 = 'BB'
+            }
+            if(nameHHto2[0].includes('LA-')){
+              LAorBB2 = 'LA'
+            }
+            else if (nameHHto2[0].includes('BB')){
+              LAorBB2 = 'BB'
+            }
+            let len1 = Object.keys(HH_Before[HH]["Equipment"][keys])
+            let len2 = Object.keys(HH_After[HH]["Equipment"][keys_2])
+            if(nameHHto1[0] == nameHHto2[0] && len1.length == len2.length && LAorBB1 == LAorBB2 ){
+              let sameValue = false
+              for(let i = 0; i < len1.length; i++){
+                if(len1[i] == len2[i]){
+                  sameValue = true
+                }
+                else{
+                  sameValue = false
+                  break
+                }
               }
-              else{
-                sameValue = false
+              if(sameValue == true){
+                temp_arrAfter = HH_After[HH]["Equipment"][keys_2]
                 break
               }
             }
-            if(sameValue == true){
-              temp_arrAfter = HH_After[HH]["Equipment"][keys_2]
-              break
-            }
           }
-        }
-        
-        if(temp_arrAfter.length == 0){
-          temp_checkError.push(HH,'Wrong cable input')
-        }
-        else{
-          for(let fiber in HH_Before[HH]["Equipment"][keys]){
-            Arr_After = temp_arrAfter[fiber]
-            Arr_Before = HH_Before[HH]["Equipment"][keys][fiber]
-            //check input fiber yang masuk dalam equipment
-            if(Arr_After.length != Arr_Before.length){
-              temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
-            }
-            else{
-              for(let i = 0; i <Arr_Before.length; i++ ){
-                for(let j =0; j< Arr_Before[i].length; j++){
-                  if(j == 3){
-                    let fibername1toHH = Arr_Before[i][j].split('_to_')
-                    let fibername2toHH = Arr_After[i][j].split('_to_')
-                    let LAorBB1 = fibername1toHH[0]
-                    let LAorBB2 = fibername2toHH[0]
-                    if(fibername1toHH[0].includes('LA-')){
-                      LAorBB1 = 'LA'
-                    }
-                    else if (fibername1toHH[0].includes('BB')){
-                      LAorBB1 = 'BB'
-                    }
-                    if(fibername2toHH[0].includes('LA-')){
-                      LAorBB2 = 'LA'
-                    }
-                    else if (fibername2toHH[0].includes('BB')){
-                      LAorBB2 = 'BB'
-                    }
-
-                    if(fibername1toHH[1] != fibername2toHH[1]){
-                      temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
-                      break
-                    }
-                    else if(LAorBB1 != LAorBB2){
-                      temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
-                      break
-                    }
-                  }
-                  else{
-                    if(Arr_Before[i][j] != Arr_After[i][j]){
-                      //console.log('Arr_After: ',Arr_After[i], 'Arr_Before: ',Arr_Before[i])
-                      temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
-                      break
+          
+          if(temp_arrAfter.length == 0){
+            temp_checkError.push(HH,'Wrong cable input')
+          }
+          else{
+            for(let fiber in HH_Before[HH]["Equipment"][keys]){
+              Arr_After = temp_arrAfter[fiber]
+              Arr_Before = HH_Before[HH]["Equipment"][keys][fiber]
+              //check input fiber yang masuk dalam equipment
+              if(Arr_After.length != Arr_Before.length){
+                temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
+              }
+              else{
+                for(let i = 0; i <Arr_Before.length; i++ ){
+                  for(let j =0; j< Arr_Before[i].length; j++){
+                    if(j == 3){
+                      let fibername1toHH = Arr_Before[i][j].split('_to_')
+                      let fibername2toHH = Arr_After[i][j].split('_to_')
+                      let LAorBB1 = fibername1toHH[0]
+                      let LAorBB2 = fibername2toHH[0]
+                      if(fibername1toHH[0].includes('LA-')){
+                        LAorBB1 = 'LA'
                       }
+                      else if (fibername1toHH[0].includes('BB')){
+                        LAorBB1 = 'BB'
+                      }
+                      if(fibername2toHH[0].includes('LA-')){
+                        LAorBB2 = 'LA'
+                      }
+                      else if (fibername2toHH[0].includes('BB')){
+                        LAorBB2 = 'BB'
+                      }
+  
+                      if(fibername1toHH[1] != fibername2toHH[1]){
+                        temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
+                        break
+                      }
+                      else if(LAorBB1 != LAorBB2){
+                        temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
+                        break
+                      }
+                    }
+                    else{
+                      if(Arr_Before[i][j] != Arr_After[i][j]){
+                        //console.log('Arr_After: ',Arr_After[i], 'Arr_Before: ',Arr_Before[i])
+                        temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
+                        break
+                        }
+                    }
                   }
                 }
               }
             }
           }
         }
+  
+        if(temp_checkError.length > 0){
+          checkError['Equipment'].push(temp_checkError)
+        }
       }
-
-      if(temp_checkError.length > 0){
-        checkError['Equipment'].push(temp_checkError)
-      }
-    }
-
-    //compare splice before and after
-    for(let keys in HH_Before[HH]["SpliceInfo"]){
-      let temp_checkError = []
-      let CableLength_Before = Object.keys(HH_Before[HH]["SpliceInfo"]).length
-      let CableLength_After = Object.keys(HH_After[HH]["SpliceInfo"]).length
-      passthrough = HH_After[HH]['Passthrough']
-      let new_passthrough =[]
-      //adjust input inside passthrough to HH
-      for(let i = 0; i< passthrough.length; i++){
-        let _to = passthrough[i].split('_to_')[1]
-        new_passthrough.push(_to)
-      }
-      //kalau cable yang connect ke HH ttoal length tak sama
-      if(CableLength_Before != CableLength_After){
-        console.log(HH,'are not connect with cable')
-        //console.log('CableLength_Before: ',CableLength_Before, 'CableLength_After: ',CableLength_After)
-        temp_checkError.push(HH, 'Missing Cable')
-      }
-      //Kalau HH tu ada passthrough
-      if(new_passthrough.length>0){
-        let keys_Cab = keys.split('_to_')[0]
-        let keys_HH = keys.split('_to_')[1]
-        //check cable yang tak passthrough dulu
-        if(!new_passthrough.includes(keys_HH)){
+  
+      //compare splice before and after
+      for(let keys in HH_Before[HH]["SpliceInfo"]){
+        let temp_checkError = []
+        let CableLength_Before = Object.keys(HH_Before[HH]["SpliceInfo"]).length
+        let CableLength_After = Object.keys(HH_After[HH]["SpliceInfo"]).length
+        passthrough = HH_After[HH]['Passthrough']
+        let new_passthrough =[]
+        //adjust input inside passthrough to HH
+        for(let i = 0; i< passthrough.length; i++){
+          let _to = passthrough[i].split('_to_')[1]
+          new_passthrough.push(_to)
+        }
+        //kalau cable yang connect ke HH ttoal length tak sama
+        if(CableLength_Before != CableLength_After){
+          console.log(HH,'are not connect with cable')
+          //console.log('CableLength_Before: ',CableLength_Before, 'CableLength_After: ',CableLength_After)
+          temp_checkError.push(HH, 'Missing Cable')
+        }
+        //Kalau HH tu ada passthrough
+        if(new_passthrough.length>0){
+          let keys_Cab = keys.split('_to_')[0]
+          let keys_HH = keys.split('_to_')[1]
+          //check cable yang tak passthrough dulu
+          if(!new_passthrough.includes(keys_HH)){
+            let len_before = HH_Before[HH]["SpliceInfo"][keys].length
+            //cari keys untuk hhafter
+            let temp_arrAfter =[]
+            for(let keys_2 in HH_After[HH]["SpliceInfo"]){
+              let nameHHto1 = keys.split(`_to_`)
+              let nameHHto2 = keys_2.split(`_to_`)
+              let LAorBB1 = nameHHto1[0]
+              let LAorBB2 = nameHHto2[0]
+              if(nameHHto1[0].includes('LA-')){
+                LAorBB1 = 'LA'
+              }
+              else if (nameHHto1[0].includes('BB')){
+                LAorBB1 = 'BB'
+              }
+              if(nameHHto2[0].includes('LA-')){
+                LAorBB2 = 'LA'
+              }
+              else if (nameHHto2[0].includes('BB')){
+                LAorBB2 = 'BB'
+              }
+              let len1 = HH_Before[HH]["SpliceInfo"][keys].length
+              let len2 = HH_After[HH]["SpliceInfo"][keys_2].length
+              if(nameHHto1[1] == nameHHto2[1] && len1 == len2 && LAorBB1 == LAorBB2){
+                temp_arrAfter = HH_After[HH]["SpliceInfo"][keys_2]
+                break;
+              }
+            }
+            if(temp_arrAfter.length == 0){
+              temp_checkError.push(HH,'Wrong cable input')
+            }
+            else{
+              for(let i = 0; i < len_before; i++ ){
+                let value_before
+                let value_after
+                try{
+                  value_before = HH_Before[HH]["SpliceInfo"][keys][i]
+                  value_after = temp_arrAfter[i]
+                }
+                catch(error){
+                  value_after = undefined
+                }
+  
+                if(value_after == undefined || value_before.length != value_after.length){
+                  temp_checkError.push(HH, 'Wrong Splicing1')
+                }
+                else{
+                  for(let j = 0; j < value_before.length; j++){
+                    if(j == 1){
+                      let fibername1toHH = value_before[j].split('_to_')
+                      let fibername2toHH = value_after[j].split('_to_')
+                      let LAorBB1 = fibername1toHH[0]
+                      let LAorBB2 = fibername2toHH[0]
+                      if(fibername1toHH[0].includes('LA-')){
+                        LAorBB1 = 'LA'
+                      }
+                      else if (fibername1toHH[0].includes('BB')){
+                        LAorBB1 = 'BB'
+                      }
+                      if(fibername2toHH[0].includes('LA-')){
+                        LAorBB2 = 'LA'
+                      }
+                      else if (fibername2toHH[0].includes('BB')){
+                        LAorBB2 = 'BB'
+                      }
+  
+                      if(fibername1toHH[1] != fibername2toHH[1] && LAorBB1 != LAorBB2){
+                        temp_checkError.push(HH,'Wrong Splicing2')
+                        break
+                      }
+                    }
+                    else{
+                      if(value_before[j] != value_after[j]){
+                        temp_checkError.push(HH, 'Wrong Splicing2')
+                        i = len_before
+                        break;
+                      }
+                    }
+                    
+                  }
+                }
+              }
+            }
+          }
+          
+        }
+        else{ 
           let len_before = HH_Before[HH]["SpliceInfo"][keys].length
           //cari keys untuk hhafter
           let temp_arrAfter =[]
@@ -1292,6 +1379,322 @@ function CompareSplicing(){
             else if (nameHHto2[0].includes('BB')){
               LAorBB2 = 'BB'
             }
+            
+            let len1 = HH_Before[HH]["SpliceInfo"][keys].length
+            let len2 = HH_After[HH]["SpliceInfo"][keys_2].length
+            if(nameHHto1[1] == nameHHto2[1] && len1 == len2 && LAorBB1 == LAorBB2){
+              temp_arrAfter = HH_After[HH]["SpliceInfo"][keys_2]
+              break;
+            }
+          }
+          if(temp_arrAfter.length == 0){
+            temp_checkError.push(HH,'Wrong cable input')
+          }
+          else{
+            for(let i = 0; i < len_before; i++ ){
+              let value_before
+              let value_after
+              try{
+                value_before = HH_Before[HH]["SpliceInfo"][keys][i]
+                value_after = temp_arrAfter[i]
+              }
+              catch(error){
+                value_after = undefined
+              }
+  
+              if(value_after == undefined || value_before.length != value_after.length){
+                temp_checkError.push(HH, 'Wrong Splicing1')
+              }
+              else{
+                for(let j = 0; j < value_before.length; j++){
+                  if(j == 1){
+                    let fibername1toHH = value_before[j].split('_to_')
+                    let fibername2toHH = value_after[j].split('_to_')
+                    let LAorBB1 = fibername1toHH[0]
+                    let LAorBB2 = fibername2toHH[0]
+                    if(fibername1toHH[0].includes('LA-')){
+                      LAorBB1 = 'LA'
+                    }
+                    else if (fibername1toHH[0].includes('BB')){
+                      LAorBB1 = 'BB'
+                    }
+                    if(fibername2toHH[0].includes('LA-')){
+                      LAorBB2 = 'LA'
+                    }
+                    else if (fibername2toHH[0].includes('BB')){
+                      LAorBB2 = 'BB'
+                    }
+  
+                    if(fibername1toHH[1] != fibername2toHH[1] && LAorBB1 != LAorBB2){
+                      temp_checkError.push(HH,'Wrong Splicing2')
+                      break
+                    }
+                  }
+                  else{
+                    if(value_before[j] != value_after[j]){
+                      temp_checkError.push(HH, 'Wrong Splicing2')
+                      i = len_before
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+          }
+          if(temp_checkError.length > 0){
+            checkError['Splicing'].push(temp_checkError)
+          }
+        }
+        if(temp_checkError.length > 0){
+          checkError['Splicing'].push(temp_checkError)
+        }
+      }
+    }
+    else{
+      //compare equipment before and after
+      for(let keys in HH_Before[HH]["Equipment"]){
+        let temp_checkError =[]
+        let inputLength_Before = Object.keys(HH_Before[HH]["Equipment"]).length
+        let inputLength_After = Object.keys(HH_After[HH]["Equipment"]).length
+
+        if(inputLength_Before != inputLength_After){
+          if(inputLength_After == 0){
+            temp_checkError.push(HH,'The Equipment doesnt have fiber input')
+          }
+          else{
+            temp_checkError.push(HH,'One of the cable have wrong fiber input')
+          }
+        }
+
+        else{
+          let temp_arrAfter = []
+          for(let keys_2 in HH_After[HH]["Equipment"]){
+            let nameHHto1 = keys.split(`_to_`)[1]
+            let nameHHto2 = keys_2.split(`_to_`)[1]
+            let LAorBB1 = nameHHto1[0]
+            let LAorBB2 = nameHHto2[0]
+            if(nameHHto1[0].includes('LA-')){
+              LAorBB1 = 'LA'
+            }
+            else if (nameHHto1[0].includes('BB')){
+              LAorBB1 = 'BB'
+            }
+            if(nameHHto2[0].includes('LA-')){
+              LAorBB2 = 'LA'
+            }
+            else if (nameHHto2[0].includes('BB')){
+              LAorBB2 = 'BB'
+            }
+            let len1 = Object.keys(HH_Before[HH]["Equipment"][keys])
+            let len2 = Object.keys(HH_After[HH]["Equipment"][keys_2])
+            if(nameHHto1 == nameHHto2 && len1.length == len2.length && LAorBB1 == LAorBB2 ){
+              let sameValue = false
+              for(let i = 0; i < len1.length; i++){
+                if(len1[i] == len2[i]){
+                  sameValue = true
+                }
+                else{
+                  sameValue = false
+                  break
+                }
+              }
+              if(sameValue == true){
+                temp_arrAfter = HH_After[HH]["Equipment"][keys_2]
+                break
+              }
+            }
+          }
+          
+          if(temp_arrAfter.length == 0){
+            temp_checkError.push(HH,'Wrong cable input')
+          }
+          else{
+            for(let fiber in HH_Before[HH]["Equipment"][keys]){
+              Arr_After = temp_arrAfter[fiber]
+              Arr_Before = HH_Before[HH]["Equipment"][keys][fiber]
+              //check input fiber yang masuk dalam equipment
+              if(Arr_After.length != Arr_Before.length){
+                temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
+              }
+              else{
+                for(let i = 0; i <Arr_Before.length; i++ ){
+                  for(let j =0; j< Arr_Before[i].length; j++){
+                    if(j == 3){
+                      let fibername1toHH = Arr_Before[i][j].split('_to_')
+                      let fibername2toHH = Arr_After[i][j].split('_to_')
+                      let LAorBB1 = fibername1toHH[0]
+                      let LAorBB2 = fibername2toHH[0]
+                      if(fibername1toHH[0].includes('LA-')){
+                        LAorBB1 = 'LA'
+                      }
+                      else if (fibername1toHH[0].includes('BB')){
+                        LAorBB1 = 'BB'
+                      }
+                      if(fibername2toHH[0].includes('LA-')){
+                        LAorBB2 = 'LA'
+                      }
+                      else if (fibername2toHH[0].includes('BB')){
+                        LAorBB2 = 'BB'
+                      }
+
+                      if(fibername1toHH[1] != fibername2toHH[1]){
+                        temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
+                        break
+                      }
+                      else if(LAorBB1 != LAorBB2){
+                        temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
+                        break
+                      }
+                    }
+                    else{
+                      if(Arr_Before[i][j] != Arr_After[i][j]){
+                        //console.log('Arr_After: ',Arr_After[i], 'Arr_Before: ',Arr_Before[i])
+                        temp_checkError.push(HH,'Wrong outgoing fiber in the Equipment')
+                        break
+                        }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        if(temp_checkError.length > 0){
+          checkError['Equipment'].push(temp_checkError)
+        }
+      }
+      //compare splice before and after
+      for(let keys in HH_Before[HH]["SpliceInfo"]){
+        let temp_checkError = []
+        let CableLength_Before = Object.keys(HH_Before[HH]["SpliceInfo"]).length
+        let CableLength_After = Object.keys(HH_After[HH]["SpliceInfo"]).length
+        passthrough = HH_After[HH]['Passthrough']
+        let new_passthrough =[]
+        //adjust input inside passthrough to HH
+        for(let i = 0; i< passthrough.length; i++){
+          let _to = passthrough[i].split('_to_')[1]
+          new_passthrough.push(_to)
+        }
+        //kalau cable yang connect ke HH ttoal length tak sama
+        if(CableLength_Before != CableLength_After){
+          console.log(HH,'are not connect with cable')
+          //console.log('CableLength_Before: ',CableLength_Before, 'CableLength_After: ',CableLength_After)
+          temp_checkError.push(HH, 'Missing Cable')
+        }
+
+        //Kalau HH tu ada passthrough
+        if(new_passthrough.length>0){
+          let keys_HH = keys.split('_to_')[1]
+          //check cable yang tak passthrough dulu
+          if(!new_passthrough.includes(keys_HH)){
+            let len_before = HH_Before[HH]["SpliceInfo"][keys].length
+            //cari keys untuk hhafter
+            let temp_arrAfter =[]
+            for(let keys_2 in HH_After[HH]["SpliceInfo"]){
+              let nameHHto1 = keys.split(`_to_`)
+              let nameHHto2 = keys_2.split(`_to_`)
+              let LAorBB1 = nameHHto1[0]
+              let LAorBB2 = nameHHto2[0]
+              if(nameHHto1[0].includes('LA-')){
+                LAorBB1 = 'LA'
+              }
+              else if (nameHHto1[0].includes('BB')){
+                LAorBB1 = 'BB'
+              }
+              if(nameHHto2[0].includes('LA-')){
+                LAorBB2 = 'LA'
+              }
+              else if (nameHHto2[0].includes('BB')){
+                LAorBB2 = 'BB'
+              }
+              
+              let len1 = HH_Before[HH]["SpliceInfo"][keys].length
+              let len2 = HH_After[HH]["SpliceInfo"][keys_2].length
+              if(nameHHto1[1] == nameHHto2[1] && len1 == len2 && LAorBB1 == LAorBB2){
+                temp_arrAfter = HH_After[HH]["SpliceInfo"][keys_2]
+                break;
+              }
+            }
+            if(temp_arrAfter.length == 0){
+              temp_checkError.push(HH,'Wrong cable input')
+            }
+            else{
+              for(let i = 0; i < len_before; i++ ){
+                let value_before
+                let value_after
+                try{
+                  value_before = HH_Before[HH]["SpliceInfo"][keys][i]
+                  value_after = temp_arrAfter[i]
+                }
+                catch(error){
+                  value_after = undefined
+                }
+
+                if(value_after == undefined || value_before.length != value_after.length){
+                  temp_checkError.push(HH, 'Wrong Splicing1')
+                }
+                else{
+                  for(let j = 0; j < value_before.length; j++){
+                    if(j == 1){
+                      let fibername1toHH = value_before[j].split('_to_')
+                      let fibername2toHH = value_after[j].split('_to_')
+                      let LAorBB1 = fibername1toHH[0]
+                      let LAorBB2 = fibername2toHH[0]
+                      if(fibername1toHH[0].includes('LA-')){
+                        LAorBB1 = 'LA'
+                      }
+                      else if (fibername1toHH[0].includes('BB')){
+                        LAorBB1 = 'BB'
+                      }
+                      if(fibername2toHH[0].includes('LA-')){
+                        LAorBB2 = 'LA'
+                      }
+                      else if (fibername2toHH[0].includes('BB')){
+                        LAorBB2 = 'BB'
+                      }
+
+                      if(fibername1toHH[1] != fibername2toHH[1] && LAorBB1 != LAorBB2){
+                        temp_checkError.push(HH,'Wrong Splicing2')
+                        break
+                      }
+                    }
+                    else{
+                      if(value_before[j] != value_after[j]){
+                        temp_checkError.push(HH, 'Wrong Splicing2')
+                        i = len_before
+                        break;
+                      }
+                    }
+                    
+                  }
+                }
+              }
+            }
+          }
+          else{}
+        }
+        else{ 
+          let len_before = HH_Before[HH]["SpliceInfo"][keys].length
+          //cari keys untuk hhafter
+          let temp_arrAfter =[]
+          for(let keys_2 in HH_After[HH]["SpliceInfo"]){
+            let nameHHto1 = keys.split(`_to_`)
+            let nameHHto2 = keys_2.split(`_to_`)
+            let LAorBB1 = nameHHto1[0]
+            let LAorBB2 = nameHHto2[0]
+            if(nameHHto1[0].includes('LA-')){
+              LAorBB1 = 'LA'
+            }
+            else if (nameHHto1[0].includes('BB')){
+              LAorBB1 = 'BB'
+            }
+            if(nameHHto2[0].includes('LA-')){
+              LAorBB2 = 'LA'
+            }
+            else if (nameHHto2[0].includes('BB')){
+              LAorBB2 = 'BB'
+            }
+            
             let len1 = HH_Before[HH]["SpliceInfo"][keys].length
             let len2 = HH_After[HH]["SpliceInfo"][keys_2].length
             if(nameHHto1[1] == nameHHto2[1] && len1 == len2 && LAorBB1 == LAorBB2){
@@ -1349,105 +1752,17 @@ function CompareSplicing(){
                       break;
                     }
                   }
-                  
                 }
               }
             }
           }
-        }
-        
-      }
-      else{ 
-        let len_before = HH_Before[HH]["SpliceInfo"][keys].length
-        //cari keys untuk hhafter
-        let temp_arrAfter =[]
-        for(let keys_2 in HH_After[HH]["SpliceInfo"]){
-          let nameHHto1 = keys.split(`_to_`)
-          let nameHHto2 = keys_2.split(`_to_`)
-          let LAorBB1 = nameHHto1[0]
-          let LAorBB2 = nameHHto2[0]
-          if(nameHHto1[0].includes('LA-')){
-            LAorBB1 = 'LA'
+          if(temp_checkError.length > 0){
+            checkError['Splicing'].push(temp_checkError)
           }
-          else if (nameHHto1[0].includes('BB')){
-            LAorBB1 = 'BB'
-          }
-          if(nameHHto2[0].includes('LA-')){
-            LAorBB2 = 'LA'
-          }
-          else if (nameHHto2[0].includes('BB')){
-            LAorBB2 = 'BB'
-          }
-          
-          let len1 = HH_Before[HH]["SpliceInfo"][keys].length
-          let len2 = HH_After[HH]["SpliceInfo"][keys_2].length
-          if(nameHHto1[1] == nameHHto2[1] && len1 == len2 && LAorBB1 == LAorBB2){
-            temp_arrAfter = HH_After[HH]["SpliceInfo"][keys_2]
-            break;
-          }
-        }
-        if(temp_arrAfter.length == 0){
-          temp_checkError.push(HH,'Wrong cable input')
-        }
-        else{
-          for(let i = 0; i < len_before; i++ ){
-            let value_before
-            let value_after
-            try{
-              value_before = HH_Before[HH]["SpliceInfo"][keys][i]
-              value_after = temp_arrAfter[i]
-            }
-            catch(error){
-              value_after = undefined
-            }
-
-            if(value_after == undefined || value_before.length != value_after.length){
-              temp_checkError.push(HH, 'Wrong Splicing1')
-            }
-            else{
-              for(let j = 0; j < value_before.length; j++){
-                if(j == 1){
-                  let fibername1toHH = value_before[j].split('_to_')
-                  let fibername2toHH = value_after[j].split('_to_')
-                  let LAorBB1 = fibername1toHH[0]
-                  let LAorBB2 = fibername2toHH[0]
-                  if(fibername1toHH[0].includes('LA-')){
-                    LAorBB1 = 'LA'
-                  }
-                  else if (fibername1toHH[0].includes('BB')){
-                    LAorBB1 = 'BB'
-                  }
-                  if(fibername2toHH[0].includes('LA-')){
-                    LAorBB2 = 'LA'
-                  }
-                  else if (fibername2toHH[0].includes('BB')){
-                    LAorBB2 = 'BB'
-                  }
-
-                  if(fibername1toHH[1] != fibername2toHH[1] && LAorBB1 != LAorBB2){
-                    temp_checkError.push(HH,'Wrong Splicing2')
-                    break
-                  }
-                }
-                else{
-                  if(value_before[j] != value_after[j]){
-                    temp_checkError.push(HH, 'Wrong Splicing2')
-                    i = len_before
-                    break;
-                  }
-                }
-              }
-            }
-          }
-        }
-        if(temp_checkError.length > 0){
-          checkError['Splicing'].push(temp_checkError)
-        }
-      }
-      if(temp_checkError.length > 0){
-        checkError['Splicing'].push(temp_checkError)
+        } 
       }
     }
+    
   }
 
   console.log('checkError: ',checkError)
