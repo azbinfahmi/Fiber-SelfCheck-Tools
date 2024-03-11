@@ -1128,6 +1128,13 @@ function AddHHintoMap(){
 function CompareSplicing(){
   for (let HH in HH_Before){
     //compare equipment before and after
+    let EqBfr = Object.keys(HH_Before[HH]["Equipment"])
+    let EqAftr = Object.keys(HH_After[HH]["Equipment"])
+    let temp_checkError_Equipment = []
+    if(EqBfr.length != EqAftr.length){
+      temp_checkError_Equipment.push(HH,'The Equipment somehow exist here?')
+      checkError['Equipment'].push(temp_checkError_Equipment)
+    }
     for(let keys in HH_Before[HH]["Equipment"]){
       let temp_checkError =[]
       let inputLength_Before = Object.keys(HH_Before[HH]["Equipment"]).length
@@ -1145,8 +1152,8 @@ function CompareSplicing(){
       else{
         let temp_arrAfter = []
         for(let keys_2 in HH_After[HH]["Equipment"]){
-          let nameHHto1 = keys.split(`_to_`)[1]
-          let nameHHto2 = keys_2.split(`_to_`)[1]
+          let nameHHto1 = keys.split(`_to_`)
+          let nameHHto2 = keys_2.split(`_to_`)
           let LAorBB1 = nameHHto1[0]
           let LAorBB2 = nameHHto2[0]
           if(nameHHto1[0].includes('LA-')){
@@ -1163,7 +1170,7 @@ function CompareSplicing(){
           }
           let len1 = Object.keys(HH_Before[HH]["Equipment"][keys])
           let len2 = Object.keys(HH_After[HH]["Equipment"][keys_2])
-          if(nameHHto1 == nameHHto2 && len1.length == len2.length && LAorBB1 == LAorBB2 ){
+          if(nameHHto1[0] == nameHHto2[0] && len1.length == len2.length && LAorBB1 == LAorBB2 ){
             let sameValue = false
             for(let i = 0; i < len1.length; i++){
               if(len1[i] == len2[i]){
@@ -1235,10 +1242,12 @@ function CompareSplicing(){
           }
         }
       }
+
       if(temp_checkError.length > 0){
         checkError['Equipment'].push(temp_checkError)
       }
     }
+
     //compare splice before and after
     for(let keys in HH_Before[HH]["SpliceInfo"]){
       let temp_checkError = []
@@ -1257,9 +1266,9 @@ function CompareSplicing(){
         //console.log('CableLength_Before: ',CableLength_Before, 'CableLength_After: ',CableLength_After)
         temp_checkError.push(HH, 'Missing Cable')
       }
-
       //Kalau HH tu ada passthrough
       if(new_passthrough.length>0){
+        let keys_Cab = keys.split('_to_')[0]
         let keys_HH = keys.split('_to_')[1]
         //check cable yang tak passthrough dulu
         if(!new_passthrough.includes(keys_HH)){
@@ -1283,7 +1292,6 @@ function CompareSplicing(){
             else if (nameHHto2[0].includes('BB')){
               LAorBB2 = 'BB'
             }
-            
             let len1 = HH_Before[HH]["SpliceInfo"][keys].length
             let len2 = HH_After[HH]["SpliceInfo"][keys_2].length
             if(nameHHto1[1] == nameHHto2[1] && len1 == len2 && LAorBB1 == LAorBB2){
@@ -1347,34 +1355,9 @@ function CompareSplicing(){
             }
           }
         }
-        else{}
+        
       }
       else{ 
-      //   let len_before = HH_Before[HH]["SpliceInfo"][keys].length
-      //   for(let i = 0; i < len_before; i++ ){
-      //     let value_before
-      //     let value_after 
-      //     try{
-      //       value_before = HH_Before[HH]["SpliceInfo"][keys][i]
-      //       value_after = HH_After[HH]["SpliceInfo"][keys][i]
-      //     }
-      //     catch(error){
-      //       value_after = undefined
-      //     }
-          
-
-      //     if(value_after == undefined || value_before.length != value_after.length){
-      //       temp_checkError.push(HH, 'Wrong Splicing3')
-      //     }
-      //     else{
-      //       for(let j = 0; j < value_before.length; j++){
-      //         if(value_before[j] != value_after[j]){
-      //           temp_checkError.push(HH, 'Wrong Splicing4')
-      //         }
-      //       }
-      //     }
-      //   }
-      // }
         let len_before = HH_Before[HH]["SpliceInfo"][keys].length
         //cari keys untuk hhafter
         let temp_arrAfter =[]
@@ -1460,7 +1443,10 @@ function CompareSplicing(){
         if(temp_checkError.length > 0){
           checkError['Splicing'].push(temp_checkError)
         }
-      } 
+      }
+      if(temp_checkError.length > 0){
+        checkError['Splicing'].push(temp_checkError)
+      }
     }
   }
 
