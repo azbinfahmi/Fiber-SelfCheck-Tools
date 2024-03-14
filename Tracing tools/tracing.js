@@ -762,634 +762,641 @@ function StoreSplicingInfo(){
 }
 
 //add HH into Map
+let countDrop
 function AddHHintoMap(){
-    function convertToTable(description, arr_fibers) {
-      var sections = description.split('<strong>').slice(1);
-      var tablesHTML = sections.map(function (section) {
-          // Extract title
-          var titleMatch = section.match(/(.*?)<\/strong>/);
-          var title = titleMatch ? titleMatch[1].trim() : '';
-          // Extract rows
-          var tableHTML = '<table class="fiberTable" border="1" style="position: relative;"><caption>' + title + ':</caption><thead><tr><td>fiberIn</td><td>fiberOut</td><td>cableOut</td></tr></thead><tbody>';
-          rows = arr_fibers[title]
-  
-          for(let i = 0; i < rows.length; i++){
-            tableHTML += '<tr><td>' + rows[i][0] + '</td><td>' + rows[i][1] + '</td><td>' + rows[i][2] + '</td></tr>';
-          }
-          tableHTML += '</tbody></table>';
-  
-          return tableHTML;
-      });
-  
-      return tablesHTML.join('<br>');
-    }
-    function findDirection(HHName,fiberName){
-      const splitNames = fiberName.split('_to_');
-      let namecable = splitNames[0]
-      let nameHH = splitNames[1]
-      let countHH = 0
-      let Info = HH_Before[HHName]['Info']
-      //nak cari HH tu ada berapa cable yang masuk kat dia
-      for(let words in Info){
-        if(nameHH == Info[words][4]){
-          countHH = countHH + 1
-        }
-      }
-      for (let words in Info){
-        if(namecable == Info[words][0] && nameHH == Info[words][4]){
-          return [Info[words][3], countHH]
-        }
-      }
-    }
-    function groupConsecutiveNumbersWithSameValue(arr) {
-      let result = [];
-      let start = parseInt(arr[0][0]);
-      let end = start;
-      let sameValue = arr[0][1];
-      if(sameValue == 'DTS'){
-        newValue = 'Secondary Splitter'
-      }
-      else{
-        newValue = 'Primary Splitter'
-      }
-      for (let i = 1; i < arr.length; i++) {
-          let current = parseInt(arr[i][0]);
-          let currentValue = arr[i][1];
-  
-          if (current === end + 1 && currentValue === sameValue) {
-              end = current;
-          } else {
-              if (start === end) {
-                  let totalValue = end - start + 1
-                  if(arr[i][4] > 1){
-                    result.push(`In (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${newValue}`)
-                  }
-                  else{
-                    result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-                  }
-                  //result.push(start.toString() + ' ' + sameValue);
-                  // result.push(`IN (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
-                } 
-                else {
-                  let totalValue = end - start + 1
-                  if(arr[i][4] > 1){
-                    result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${newValue}`)
-                  }
-                  else{
-                    result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-                  }
-                  //result.push(start.toString() + '-' + end.toString() + ' ' + sameValue);
-                  // result.push(`IN (${start.toString()}-${end.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
-                }
-              start = current;
-              end = current;
-              sameValue = currentValue;
-          }
-      }
-  
-      // Add the last range
-      if (start === end) {
-          let totalValue = end - start + 1
-          //result.push(start.toString() + ' ' + sameValue + ' ' + arr[0][2]);
-          // result.push(`In (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
-          result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+  function convertToTable(description, arr_fibers) {
+    var sections = description.split('<strong>').slice(1);
+    var tablesHTML = sections.map(function (section) {
+        // Extract title
+        var titleMatch = section.match(/(.*?)<\/strong>/);
+        var title = titleMatch ? titleMatch[1].trim() : '';
+        // Extract rows
+        var tableHTML = '<table class="fiberTable" border="1" style="position: relative;"><caption>' + title + ':</caption><thead><tr><td>fiberIn</td><td>fiberOut</td><td>cableOut</td></tr></thead><tbody>';
+        rows = arr_fibers[title]
 
+        for(let i = 0; i < rows.length; i++){
+          tableHTML += '<tr><td>' + rows[i][0] + '</td><td>' + rows[i][1] + '</td><td>' + rows[i][2] + '</td></tr>';
+        }
+        tableHTML += '</tbody></table>';
+
+        return tableHTML;
+    });
+
+    return tablesHTML.join('<br>');
+  }
+  function findDirection(HHName,fiberName){
+    const splitNames = fiberName.split('_to_');
+    let namecable = splitNames[0]
+    let nameHH = splitNames[1]
+    let countHH = 0
+    let Info = HH_Before[HHName]['Info']
+    //nak cari HH tu ada berapa cable yang masuk kat dia
+    for(let words in Info){
+      if(nameHH == Info[words][4]){
+        countHH = countHH + 1
+      }
+    }
+    for (let words in Info){
+      if(namecable == Info[words][0] && nameHH == Info[words][4]){
+        return [Info[words][3], countHH]
+      }
+    }
+  }
+  function groupConsecutiveNumbersWithSameValue(arr) {
+    let result = [];
+    let start = parseInt(arr[0][0]);
+    let end = start;
+    let sameValue = arr[0][1];
+    if(sameValue == 'DTS'){
+      newValue = 'Secondary Splitter'
+    }
+    else{
+      newValue = 'Primary Splitter'
+    }
+    for (let i = 1; i < arr.length; i++) {
+        let current = parseInt(arr[i][0]);
+        let currentValue = arr[i][1];
+
+        if (current === end + 1 && currentValue === sameValue) {
+            end = current;
         } else {
-          let totalValue = end - start + 1
-          //result.push(start.toString() + '-' + end.toString() + ' ' + sameValue + ' ' +  arr[0][2]);
-          result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-      }
-  
-      return result;
-    }
-    function extractFOC(inputString) {
-      const splitNames = inputString.split('_to_');
-      let namecable = splitNames[0]
-      if(namecable.startsWith('LA') || namecable.startsWith('BB'))
-      {
-        return namecable
-      }
-      else{
-        const lastIndex = namecable.lastIndexOf('-');
-        if (lastIndex !== -1 && lastIndex < namecable.length - 1) {
-          if(!namecable.substring(lastIndex + 1).includes('FOC')){
-            return namecable.substring(lastIndex - 3);
-          }
-          else{
-            return namecable.substring(lastIndex + 1);
-          }
-          
-        } else {
-          return namecable;
-        }
-      }
-      
-    }
-    //highligt the path
-    function HighlightFiberPath(HHname){
-      function highlightFiberandHH(arr){
-        freeze = true
-        // Check if any fiber does not have same path
-        let filteredArrays = Object.entries(arr).filter(([key]) => key !== 'DTS' && key !== 'Fail');
-        let lengths = filteredArrays.map(([_, array]) => array.reduce((acc, cur) => acc + cur.length, 0));
-        let uniqueLengths = new Set(lengths);
-        let diffLength = uniqueLengths.size > 1;
-
-        let minLength = Infinity;
-        let shortestKey = null;
-
-        if (diffLength) {
-            filteredArrays.forEach(([key, array]) => {
-                let length = array.reduce((acc, cur) => acc + cur.length, 0);
-                if (length < minLength) {
-                    minLength = length;
-                    shortestKey = key;
+            if (start === end) {
+                let totalValue = end - start + 1
+                if(arr[i][4] > 1){
+                  result.push(`In (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${newValue}`)
                 }
-            });
+                else{
+                  result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+                }
+                //result.push(start.toString() + ' ' + sameValue);
+                // result.push(`IN (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
+              } 
+              else {
+                let totalValue = end - start + 1
+                if(arr[i][4] > 1){
+                  result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${newValue}`)
+                }
+                else{
+                  result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+                }
+                //result.push(start.toString() + '-' + end.toString() + ' ' + sameValue);
+                // result.push(`IN (${start.toString()}-${end.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
+              }
+            start = current;
+            end = current;
+            sameValue = currentValue;
         }
-        //highlight selected fiber color
-        for(let fiberIn in arr){
-          for(let i = 0; i < arr[fiberIn].length; i++){
-            if(arr[fiberIn][i].length == 5){
-              let colors = 'yellow'
-              //highlight fiber
-              let leafletID = arr[fiberIn][i][4]
-              let HH = arr[fiberIn][i][2]
-              Layers[0]._layers[leafletID].setStyle({
-                color: colors,
-              })
-              //highlight HH
-              for(let j = 0; j<storeHHColor.length;j++){
-                if(storeHHColor[j][0] == HH){
+    }
+
+    // Add the last range
+    if (start === end) {
+        let totalValue = end - start + 1
+        //result.push(start.toString() + ' ' + sameValue + ' ' + arr[0][2]);
+        // result.push(`In (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
+        result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+
+      } else {
+        let totalValue = end - start + 1
+        //result.push(start.toString() + '-' + end.toString() + ' ' + sameValue + ' ' +  arr[0][2]);
+        result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+    }
+
+    return result;
+  }
+  function extractFOC(inputString) {
+    const splitNames = inputString.split('_to_');
+    let namecable = splitNames[0]
+    if(namecable.startsWith('LA') || namecable.startsWith('BB'))
+    {
+      return namecable
+    }
+    else{
+      const lastIndex = namecable.lastIndexOf('-');
+      if (lastIndex !== -1 && lastIndex < namecable.length - 1) {
+        if(!namecable.substring(lastIndex + 1).includes('FOC')){
+          return namecable.substring(lastIndex - 3);
+        }
+        else{
+          return namecable.substring(lastIndex + 1);
+        }
+        
+      } else {
+        return namecable;
+      }
+    }
+    
+  }
+  //highligt the path
+  function HighlightFiberPath(HHname){
+    function highlightFiberandHH(arr){
+      freeze = true
+      // Check if any fiber does not have same path
+      let filteredArrays = Object.entries(arr).filter(([key]) => key !== 'DTS' && key !== 'Fail');
+      let lengths = filteredArrays.map(([_, array]) => array.reduce((acc, cur) => acc + cur.length, 0));
+      let uniqueLengths = new Set(lengths);
+      let diffLength = uniqueLengths.size > 1;
+
+      let minLength = Infinity;
+      let shortestKey = null;
+
+      if (diffLength) {
+          filteredArrays.forEach(([key, array]) => {
+              let length = array.reduce((acc, cur) => acc + cur.length, 0);
+              if (length < minLength) {
+                  minLength = length;
+                  shortestKey = key;
+              }
+          });
+      }
+      //highlight selected fiber color
+      for(let fiberIn in arr){
+        for(let i = 0; i < arr[fiberIn].length; i++){
+          if(arr[fiberIn][i].length == 5){
+            let colors = 'yellow'
+            //highlight fiber
+            let leafletID = arr[fiberIn][i][4]
+            let HH = arr[fiberIn][i][2]
+            Layers[0]._layers[leafletID].setStyle({
+              color: colors,
+            })
+            //highlight HH
+            for(let j = 0; j<storeHHColor.length;j++){
+              if(storeHHColor[j][0] == HH){
+                HHlayer[j].setStyle({
+                  fillColor: colors,
+                  fillOpacity: 0.9,
+                })
+                if(i ==0){
                   HHlayer[j].setStyle({
+                    color: colors,
                     fillColor: colors,
                     fillOpacity: 0.9,
                   })
-                  if(i ==0){
-                    HHlayer[j].setStyle({
-                      color: colors,
-                      fillColor: colors,
-                      fillOpacity: 0.9,
-                    })
-                  }
-                  break;
                 }
-              }
-            }
-          }
-        }
-
-        //highlight the wrong cable
-        if(diffLength){
-          console.log('shortestKey: ',shortestKey)
-          for(let i = 0; i < arr[shortestKey].length; i++){
-            if(arr[shortestKey][i].length == 5){
-              let colors = '#f55b8b'
-              //highlight fiber
-              let leafletID = arr[shortestKey][i][4]
-              let HH = arr[shortestKey][i][2]
-              Layers[0]._layers[leafletID].setStyle({
-                color: colors,
-              })
-            }
-          }
-        }
-      }
-      //highlight incoming path from PS
-      function HighlightFiberPath_FromPS(arr){
-        freeze = true
-        // Check if any fiber does not have same path
-        let filteredArrays = Object.entries(arr).filter(([key]) => key !== 'DTS' && key !== 'Fail');
-        let lengths = filteredArrays.map(([_, array]) => array.reduce((acc, cur) => acc + cur.length, 0));
-        let uniqueLengths = new Set(lengths);
-        let diffLength = uniqueLengths.size > 1;
-
-        let minLength = Infinity;
-        let shortestKey = null;
-
-        if (diffLength) {
-            filteredArrays.forEach(([key, array]) => {
-                let length = array.reduce((acc, cur) => acc + cur.length, 0);
-                if (length < minLength) {
-                    minLength = length;
-                    shortestKey = key;
-                }
-            });
-        }
-        for(let fiberIn in arr){
-          for(let i = 0; i < arr[fiberIn].length; i++){
-            if(arr[fiberIn][i].length == 5 && arr[fiberIn][i][4] != undefined){
-              //highlight fiber
-              let leafletID = arr[fiberIn][i][4]
-              let HH = arr[fiberIn][i][2]
-              Layers[0]._layers[leafletID].setStyle({
-                color: 'Magenta',
-              })
-              //highlight HH
-              for(let j = 0; j<storeHHColor.length;j++){
-                if(storeHHColor[j][0] == HH){
-                  HHlayer[j].setStyle({
-                    fillColor: 'Magenta',
-                    fillOpacity: 0.9,
-                  })
-                  break;
-                }
-              }
-            }
-          }
-        }
-        //highlight cable yang tak sama length
-        if(diffLength){
-          console.log('shortestKey: ',shortestKey)
-          for(let i = 0; i < arr[shortestKey].length; i++){
-            if(arr[shortestKey][i].length == 5){
-              let colors = '#f55b8b'
-              //highlight fiber
-              let leafletID = arr[shortestKey][i][4]
-              let HH = arr[shortestKey][i][2]
-              Layers[0]._layers[leafletID].setStyle({
-                color: colors,
-              })
-            }
-          }
-        }
-      }
-      //clear highlight color for fiber
-      for(let leafletID in Layers[0]._layers){
-        Layers[0]._layers[leafletID].setStyle({
-            color: '#3388ff',
-          })
-      }
-      //clear highlight color for HH
-      for(let i =0; i < HHlayer.length; i++){
-        HHlayer[i].setStyle({
-            color: storeHHColor[i][1],
-            fillColor: storeHHColor[i][2],
-            fillOpacity: 1
-          })
-        //HHlayer[i].options.color = 'red'
-      }
-      let arr = HHtoObserve[HHname]
-      if(arr!= undefined){
-        console.log('arr',arr)
-        highlightFiberandHH(arr)
-      }
-      let arr_PS = hhFromPS[HHname]
-      if(arr_PS != undefined){
-        freeze = true
-        for(let fibername in arr_PS){
-          if(fibername == 'IncomingFiber'){
-            for(let cable in arr_PS[fibername]){
-              console.log('IncomingFiber: ',arr_PS['IncomingFiber'][cable])
-              let temp_ = arr_PS[fibername][cable]
-              HighlightFiberPath_FromPS(temp_)
-            }
-          }
-          else{
-            console.log('HH served: ',arr_PS[fibername])
-            for(let fiberIn in arr_PS[fibername]){
-              let HH = arr_PS[fibername][fiberIn]
-              let highlightArr = HHtoObserve[HH]
-              if(highlightArr != undefined){
-                highlightFiberandHH(highlightArr)
+                break;
               }
             }
           }
         }
       }
-      if(HH_Before[HHname]['Drop'].length> 0){
-        let prop = `${HH_Before[HHname]['Drop'].length} Drop are not Connect:\n`
-        for(let i = 0; i < HH_Before[HHname]['Drop'].length; i++){
-          prop += HH_Before[HHname]['Drop'][i] + `\n`
+
+      //highlight the wrong cable
+      if(diffLength){
+        console.log('shortestKey: ',shortestKey)
+        for(let i = 0; i < arr[shortestKey].length; i++){
+          if(arr[shortestKey][i].length == 5){
+            let colors = '#f55b8b'
+            //highlight fiber
+            let leafletID = arr[shortestKey][i][4]
+            let HH = arr[shortestKey][i][2]
+            Layers[0]._layers[leafletID].setStyle({
+              color: colors,
+            })
+          }
         }
-        alert(`${prop}`)
       }
     }
-    //find the duplicate name of HH
-    let popup = ''
-    if(showDuplicateHH.length > 0){
-      for(let i = 0; i< showDuplicateHH.length; i++){
-        popup += `${showDuplicateHH[i]}\n`
+    //highlight incoming path from PS
+    function HighlightFiberPath_FromPS(arr){
+      freeze = true
+      // Check if any fiber does not have same path
+      let filteredArrays = Object.entries(arr).filter(([key]) => key !== 'DTS' && key !== 'Fail');
+      let lengths = filteredArrays.map(([_, array]) => array.reduce((acc, cur) => acc + cur.length, 0));
+      let uniqueLengths = new Set(lengths);
+      let diffLength = uniqueLengths.size > 1;
+
+      let minLength = Infinity;
+      let shortestKey = null;
+
+      if (diffLength) {
+          filteredArrays.forEach(([key, array]) => {
+              let length = array.reduce((acc, cur) => acc + cur.length, 0);
+              if (length < minLength) {
+                  minLength = length;
+                  shortestKey = key;
+              }
+          });
       }
-      console.log('duplicateHH: ',showDuplicateHH)
-      alert("Duplicate HH: \n" + popup)
-    }
-    //create HH into map
-    HH_coordinate.forEach((feature, hh_index) => {
-      let description = '', eq_desc = '', new_name
-      let arr_fibers = {}
-      const name = feature[0]
-      new_name = name
-      //tukaq nama kalau nama hh guna ID (ni berguna kalau untuk job yang echo buat)
-      if(name.includes('HH-')){
-        let arr1 = HH_Before[name]['Equipment']
-        for(let cable in arr1){
-          for(let fIN in arr1[cable]){
-            new_name = arr1[cable][fIN][0][0].replace(/\(\d+\)◀/, '')
+      for(let fiberIn in arr){
+        for(let i = 0; i < arr[fiberIn].length; i++){
+          if(arr[fiberIn][i].length == 5 && arr[fiberIn][i][4] != undefined){
+            //highlight fiber
+            let leafletID = arr[fiberIn][i][4]
+            let HH = arr[fiberIn][i][2]
+            Layers[0]._layers[leafletID].setStyle({
+              color: 'Magenta',
+            })
+            //highlight HH
+            for(let j = 0; j<storeHHColor.length;j++){
+              if(storeHHColor[j][0] == HH){
+                HHlayer[j].setStyle({
+                  fillColor: 'Magenta',
+                  fillOpacity: 0.9,
+                })
+                break;
+              }
+            }
           }
         }
       }
-      const lat = feature[1];
-      const lon = feature[2];
+      //highlight cable yang tak sama length
+      if(diffLength){
+        console.log('shortestKey: ',shortestKey)
+        for(let i = 0; i < arr[shortestKey].length; i++){
+          if(arr[shortestKey][i].length == 5){
+            let colors = '#f55b8b'
+            //highlight fiber
+            let leafletID = arr[shortestKey][i][4]
+            let HH = arr[shortestKey][i][2]
+            Layers[0]._layers[leafletID].setStyle({
+              color: colors,
+            })
+          }
+        }
+      }
+    }
+    //clear highlight color for fiber
+    for(let leafletID in Layers[0]._layers){
+      Layers[0]._layers[leafletID].setStyle({
+          color: '#3388ff',
+        })
+    }
+    //clear highlight color for HH
+    for(let i =0; i < HHlayer.length; i++){
+      HHlayer[i].setStyle({
+          color: storeHHColor[i][1],
+          fillColor: storeHHColor[i][2],
+          fillOpacity: 1
+        })
+      //HHlayer[i].options.color = 'red'
+    }
+    let arr = HHtoObserve[HHname]
+    if(arr!= undefined){
+      console.log('arr',arr)
+      highlightFiberandHH(arr)
+    }
+    let arr_PS = hhFromPS[HHname]
+    if(arr_PS != undefined){
+      freeze = true
+      for(let fibername in arr_PS){
+        if(fibername == 'IncomingFiber'){
+          for(let cable in arr_PS[fibername]){
+            console.log('IncomingFiber: ',arr_PS['IncomingFiber'][cable])
+            let temp_ = arr_PS[fibername][cable]
+            HighlightFiberPath_FromPS(temp_)
+          }
+        }
+        else{
+          console.log('HH served: ',arr_PS[fibername])
+          for(let fiberIn in arr_PS[fibername]){
+            let HH = arr_PS[fibername][fiberIn]
+            let highlightArr = HHtoObserve[HH]
+            if(highlightArr != undefined){
+              highlightFiberandHH(highlightArr)
+            }
+          }
+        }
+      }
+    }
+    if(HH_Before[HHname]['Drop'].length> 0){
+      let prop = `${HH_Before[HHname]['Drop'].length} Drop are not Connect:\n`
+      for(let i = 0; i < HH_Before[HHname]['Drop'].length; i++){
+        prop += HH_Before[HHname]['Drop'][i] + `\n`
+      }
+      alert(`${prop}`)
+    }
+  }
+  //find the duplicate name of HH
+  let popup = ''
+  if(showDuplicateHH.length > 0){
+    for(let i = 0; i< showDuplicateHH.length; i++){
+      popup += `${showDuplicateHH[i]}\n`
+    }
+    console.log('duplicateHH: ',showDuplicateHH)
+    //alert("Duplicate HH: \n" + popup)
+  }
+  //create HH into map
+  HH_coordinate.forEach((feature, hh_index) => {
+    let description = '', eq_desc = '', new_name
+    let arr_fibers = {}
+    const name = feature[0]
+    new_name = name
+    //tukaq nama kalau nama hh guna ID (ni berguna kalau untuk job yang echo buat)
+    if(name.includes('HH-')){
+      let arr1 = HH_Before[name]['Equipment']
+      for(let cable in arr1){
+        for(let fIN in arr1[cable]){
+          new_name = arr1[cable][fIN][0][0].replace(/\(\d+\)◀/, '')
+        }
+      }
+    }
+    const lat = feature[1];
+    const lon = feature[2];
 
-      //getInfo that not cut and passthrough for simplified splicing INFO
-      let labelDesc = [], new_desc =[], arrKeys =[], arrDTS =[]
-      //for splicing
-      for(let fibername in HH_Before[name]['SpliceInfo']){
-        let arr = HH_Before[name]['SpliceInfo'][fibername]
-        for(let i =0; i < arr.length; i++){
-          //console.log('arr[i][2]: ',arr[i][2])
-          if(arr[i][2] == 'Cut' || arr[i][2] == 'Passthrough'){
+    //getInfo that not cut and passthrough for simplified splicing INFO
+    let labelDesc = [], new_desc =[], arrKeys =[], arrDTS =[]
+    //for splicing
+    for(let fibername in HH_Before[name]['SpliceInfo']){
+      let arr = HH_Before[name]['SpliceInfo'][fibername]
+      for(let i =0; i < arr.length; i++){
+        //console.log('arr[i][2]: ',arr[i][2])
+        if(arr[i][2] == 'Cut' || arr[i][2] == 'Passthrough'){
+          continue
+        }
+        else{
+          let direction = findDirection(name,fibername)
+          let directionIn = direction[0]
+          let countIn = direction[1]
+          //let layersID = direction[2]
+          
+          let foc_in = extractFOC(fibername)
+          let foc_out = extractFOC(arr[i][2])
+          if(arr[i][2] === "Equipment"){
             continue
           }
           else{
-            let direction = findDirection(name,fibername)
-            let directionIn = direction[0]
-            let countIn = direction[1]
-            //let layersID = direction[2]
-            
-            let foc_in = extractFOC(fibername)
-            let foc_out = extractFOC(arr[i][2])
-            if(arr[i][2] === "Equipment"){
-              continue
+            let direction = findDirection(name,arr[i][2])
+            let directionOut = direction[0]
+            let countOut = direction[1]
+            if(countIn > 1 && countOut> 1){
+              labelDesc.push(`In ${foc_out}(${arr[i][1]})${directionOut} Out ${foc_in}(${arr[i][0]})${directionIn}<br>`)
+            }
+            else if(countIn > 1){
+              labelDesc.push(`In (${arr[i][1]}) (${directionOut}) Out ${foc_in}(${arr[i][0]})${directionIn}<br>`)
+            }
+            else if(countOut > 1){
+              labelDesc.push(`In ${foc_out}(${arr[i][1]})${directionOut} Out (${arr[i][0]})${directionIn}<br>`)
             }
             else{
-              let direction = findDirection(name,arr[i][2])
+              labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)    
+            }              
+          }
+        }
+      }
+    }
+    //for equipment
+    for(let fibername in HH_Before[name]['Equipment']){
+      let direction = findDirection(name,fibername)
+      let directionIn = direction[0]
+      let countIn = direction[1]
+      let keys = Object.keys(HH_Before[name]['Equipment'][fibername])
+      let arr_check =[]
+
+      for(let i = 0; i < keys.length; i++){
+        if(HH_Before[name]['Equipment'][fibername][keys[i]][0].length === 4){
+          arr_check.push([keys[i],'PS', extractFOC(fibername), directionIn, countIn])
+          HH_coordinate[hh_index][3] = 'PS'
+        }
+        else{
+          arr_check.push([keys[i],'DTS', extractFOC(fibername), directionIn, countIn])
+          arrDTS.push([keys[i],fibername])
+        }
+        for(let j = 0; j <HH_Before[name]['Equipment'][fibername][keys[i]].length; j++ ){
+          let inc
+          let arr = HH_Before[name]['Equipment'][fibername][keys[i]][j]
+          if (i == 0){
+            inc = 0
+          }
+          else{
+            inc = i * 8
+          }
+          
+          if(arr.length ==4){
+            let parts = arr[1].split('-')
+            let PortRange
+            if(parts.length > 1){
+              let val1 = Number(parts[0]) + inc
+              let val2 = Number(parts[1]) + inc
+              PortRange = `${val1}-${val2}`
+            }
+            else{
+              let val1 = Number(parts[0]) + inc
+              PortRange = `${val1}`
+            }
+            let direction = findDirection(name,arr[3])              
+            if(direction == undefined){
+              new_desc.push(`In (Port ${PortRange}) Out Secondary Splitter`)
+            }
+            else{
               let directionOut = direction[0]
               let countOut = direction[1]
-              if(countIn > 1 && countOut> 1){
-                labelDesc.push(`In ${foc_out}(${arr[i][1]})${directionOut} Out ${foc_in}(${arr[i][0]})${directionIn}<br>`)
-              }
-              else if(countIn > 1){
-                labelDesc.push(`In (${arr[i][1]}) (${directionOut}) Out ${foc_in}(${arr[i][0]})${directionIn}<br>`)
-              }
-              else if(countOut > 1){
-                labelDesc.push(`In ${foc_out}(${arr[i][1]})${directionOut} Out (${arr[i][0]})${directionIn}<br>`)
+              let foc_out = extractFOC(arr[3])
+
+              if(countOut> 1){
+                new_desc.push(`In (Port ${PortRange}) Out ${foc_out}(${arr[2]})${directionOut}`)
               }
               else{
-                labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)    
-              }              
+                new_desc.push(`In (Port ${PortRange}) Out (${arr[2]}) ${directionOut}`)
+              }
             }
-          }
+          }       
         }
       }
-      //for equipment
-      for(let fibername in HH_Before[name]['Equipment']){
-        let direction = findDirection(name,fibername)
-        let directionIn = direction[0]
-        let countIn = direction[1]
-        let keys = Object.keys(HH_Before[name]['Equipment'][fibername])
-        let arr_check =[]
-
-        for(let i = 0; i < keys.length; i++){
-          if(HH_Before[name]['Equipment'][fibername][keys[i]][0].length === 4){
-            arr_check.push([keys[i],'PS', extractFOC(fibername), directionIn, countIn])
-            HH_coordinate[hh_index][3] = 'PS'
+      arrKeys.push(groupConsecutiveNumbersWithSameValue(arr_check))
+      
+      // console.log('new_desc: ',new_desc)
+      // console.log('arrKeys: ',arrKeys)
+    }
+    //store HH that has DTS
+    if(arrDTS.length > 0){
+      HHtoObserve[name]= {'DTS': arrDTS}
+    }
+    //SplicingInfo
+    for(let fibername in HH_Before[name]['SpliceInfo']){
+      let Fname = fibername.split('_to_')
+      let fname = Fname[0]
+      let dir = findDirection(name,fibername)
+      let arr = HH_Before[name]['SpliceInfo'][fibername]
+      temp_arrfibers2 =[]
+      for(let desc in arr){
+        temp_arrfibers =[]
+        for(let i = 0; i < arr[desc].length; i++){
+          let newFname = arr[desc][i].split('_to_')
+          if(newFname.length == 2){
+            let a = newFname[0]
+            let dir = findDirection(name,arr[desc][i])
+            temp_arrfibers.push(`${a}(${dir[0]})`)
           }
           else{
-            arr_check.push([keys[i],'DTS', extractFOC(fibername), directionIn, countIn])
-            arrDTS.push([keys[i],fibername])
+            temp_arrfibers.push(arr[desc][i])
           }
-          for(let j = 0; j <HH_Before[name]['Equipment'][fibername][keys[i]].length; j++ ){
-            let inc
-            let arr = HH_Before[name]['Equipment'][fibername][keys[i]][j]
-            if (i == 0){
-              inc = 0
-            }
-            else{
-              inc = i * 8
+        }
+        temp_arrfibers2.push(temp_arrfibers)
+      }
+      fibername = `${fname}(${dir[0]})`
+      description += '<strong>' + fibername + '</strong>'
+      arr_fibers[fibername] = temp_arrfibers2
+    }
+    let new_description = convertToTable(description,arr_fibers)
+    //Equipment
+    for(let fibername in HH_Before[name]['Equipment']){
+      let Fname = fibername.split('_to_')
+      let fname = Fname[0]
+      let dir = findDirection(name,fibername)
+      eq_desc += '<strong> Cable In:' + `${fname}(${dir[0]})` + '</strong><br>'
+      for(let fiberIn in HH_Before[name]['Equipment'][fibername]){
+        let arr = HH_Before[name]['Equipment'][fibername][fiberIn]
+
+        //console.log('nameHH', name ,'\narr',arr)
+        if(arr[0].length > 1){
+          //eq_desc += `Primary Splitter <br> Fiber In: ${fiberIn} <br>`
+          eq_desc += `<table class= "fiberTable" border="1" style = "position: relative;"><thead>
+          <tr>
+          <td>Fiber In</td>
+          <td>Equipment</td>
+          <td>Port</td>
+          <td>Fiber Out</td>
+          <td> Cable Out</td>
+          </tr></thead>
+          <tbody>`
+        }
+        else{
+          //eq_desc += `Secondary Splitter <br>`
+          eq_desc += `<table class= "fiberTable" border="1" style = "position: relative;"><thead>
+          <tr>
+          <td>Fiber In</td>
+          <td>Equipment</td>
+          </tr></thead>
+          <tbody>
+          `
+        }
+        for(let i = 0; i < arr.length; i++){
+          if(arr[i].length == 1){
+            eq_desc +=`<tr>
+            <td>${fiberIn}</td>
+            <td>${arr[i][0]}</td>
+            </tr>`
+          }
+          else{
+            let Fname = arr[i][3].split('_to_')
+            let newFiberName = arr[i][3]
+            if(Fname.length==2){
+              let fname = Fname[0]
+              let dir = findDirection(name,arr[i][3])
+              newFiberName = `${fname}(${dir[0]})`
             }
             
-            if(arr.length ==4){
-              let parts = arr[1].split('-')
-              let PortRange
-              if(parts.length > 1){
-                let val1 = Number(parts[0]) + inc
-                let val2 = Number(parts[1]) + inc
-                PortRange = `${val1}-${val2}`
-              }
-              else{
-                let val1 = Number(parts[0]) + inc
-                PortRange = `${val1}`
-              }
-              let direction = findDirection(name,arr[3])              
-              if(direction == undefined){
-                new_desc.push(`In (Port ${PortRange}) Out Secondary Splitter`)
-              }
-              else{
-                let directionOut = direction[0]
-                let countOut = direction[1]
-                let foc_out = extractFOC(arr[3])
-
-                if(countOut> 1){
-                  new_desc.push(`In (Port ${PortRange}) Out ${foc_out}(${arr[2]})${directionOut}`)
-                }
-                else{
-                  new_desc.push(`In (Port ${PortRange}) Out (${arr[2]}) ${directionOut}`)
-                }
-              }
-            }       
-          }
-        }
-        arrKeys.push(groupConsecutiveNumbersWithSameValue(arr_check))
-        
-        // console.log('new_desc: ',new_desc)
-        // console.log('arrKeys: ',arrKeys)
-      }
-      //store HH that has DTS
-      if(arrDTS.length > 0){
-        HHtoObserve[name]= {'DTS': arrDTS}
-      }
-      //SplicingInfo
-      for(let fibername in HH_Before[name]['SpliceInfo']){
-        let Fname = fibername.split('_to_')
-        let fname = Fname[0]
-        let dir = findDirection(name,fibername)
-        let arr = HH_Before[name]['SpliceInfo'][fibername]
-        temp_arrfibers2 =[]
-        for(let desc in arr){
-          temp_arrfibers =[]
-          for(let i = 0; i < arr[desc].length; i++){
-            let newFname = arr[desc][i].split('_to_')
-            if(newFname.length == 2){
-              let a = newFname[0]
-              let dir = findDirection(name,arr[desc][i])
-              temp_arrfibers.push(`${a}(${dir[0]})`)
-            }
-            else{
-              temp_arrfibers.push(arr[desc][i])
-            }
-          }
-          temp_arrfibers2.push(temp_arrfibers)
-        }
-        fibername = `${fname}(${dir[0]})`
-        description += '<strong>' + fibername + '</strong>'
-        arr_fibers[fibername] = temp_arrfibers2
-      }
-      let new_description = convertToTable(description,arr_fibers)
-      //Equipment
-      for(let fibername in HH_Before[name]['Equipment']){
-        let Fname = fibername.split('_to_')
-        let fname = Fname[0]
-        let dir = findDirection(name,fibername)
-        eq_desc += '<strong> Cable In:' + `${fname}(${dir[0]})` + '</strong><br>'
-        for(let fiberIn in HH_Before[name]['Equipment'][fibername]){
-          let arr = HH_Before[name]['Equipment'][fibername][fiberIn]
-  
-          //console.log('nameHH', name ,'\narr',arr)
-          if(arr[0].length > 1){
-            //eq_desc += `Primary Splitter <br> Fiber In: ${fiberIn} <br>`
-            eq_desc += `<table class= "fiberTable" border="1" style = "position: relative;"><thead>
-            <tr>
-            <td>Fiber In</td>
-            <td>Equipment</td>
-            <td>Port</td>
-            <td>Fiber Out</td>
-            <td> Cable Out</td>
-            </tr></thead>
-            <tbody>`
-          }
-          else{
-            //eq_desc += `Secondary Splitter <br>`
-            eq_desc += `<table class= "fiberTable" border="1" style = "position: relative;"><thead>
-            <tr>
-            <td>Fiber In</td>
-            <td>Equipment</td>
-            </tr></thead>
-            <tbody>
-            `
-          }
-          for(let i = 0; i < arr.length; i++){
-            if(arr[i].length == 1){
+            if(i == 0){
               eq_desc +=`<tr>
               <td>${fiberIn}</td>
               <td>${arr[i][0]}</td>
+              <td>${arr[i][1]}</td>
+              <td>${arr[i][2]}</td>
+              <td>${newFiberName}</td>
               </tr>`
             }
             else{
-              let Fname = arr[i][3].split('_to_')
-              let newFiberName = arr[i][3]
-              if(Fname.length==2){
-                let fname = Fname[0]
-                let dir = findDirection(name,arr[i][3])
-                newFiberName = `${fname}(${dir[0]})`
-              }
-             
-              if(i == 0){
-                eq_desc +=`<tr>
-                <td>${fiberIn}</td>
-                <td>${arr[i][0]}</td>
-                <td>${arr[i][1]}</td>
-                <td>${arr[i][2]}</td>
-                <td>${newFiberName}</td>
-                </tr>`
-              }
-              else{
-                eq_desc +=`<tr>
-                <td></td>
-                <td>${arr[i][0]}</td>
-                <td>${arr[i][1]}</td>
-                <td>${arr[i][2]}</td>
-                <td>${newFiberName}</td>
-                </tr>`
-              }
-              
+              eq_desc +=`<tr>
+              <td></td>
+              <td>${arr[i][0]}</td>
+              <td>${arr[i][1]}</td>
+              <td>${arr[i][2]}</td>
+              <td>${newFiberName}</td>
+              </tr>`
             }
+            
           }
-          eq_desc += `</tbody>
-          </table>
-          <br>
-          `
         }
+        eq_desc += `</tbody>
+        </table>
+        <br>
+        `
       }
-      // console.log('labelDesc: ',labelDesc)//ni cable splicing
-      // console.log('arrKeys: ',arrKeys)//ni cable yang masuk ke eq
-      // console.log('new_desc: ',new_desc)//ni port
-      let popupContent = `
-      <div class="custom-popup">
-          <div id="page1">
-              <h2><strong>${name} : </strong> Splicing Information (simplified)</h2>
-              <strong>${new_name}</strong><br>
-              ${labelDesc.join('')}
-              ${arrKeys.join('<br>')}<br> 
-              ${new_desc.join('<br>')}<br>
-          </div>
-  
-          <div id="page2" style="display: none;">
-              <h2><strong>${name} : </strong> Splicing Information</h2><br>
-              ${new_description}
-          </div>
-  
-          <div id="page3" style="display: none;">
-              <h2><strong>${name} : </strong> Equipment</h2>
-              ${eq_desc}
-          </div>
-          <div id="navigation">
-              <button onclick="showPage(1)">1</button>
-              <button onclick="showPage(2)">2</button>
-              <button onclick="showPage(3)">3</button>
-          </div>
-      </div>
-    `;
-      let additionalStyles = `
-        <style>
-            .custom-popup {
-                max-height: 200px;
-                max-width: 300px;
-                overflow-y: auto;
-            }
-        </style>
-      `;
-      document.head.innerHTML += additionalStyles;
+    }
+    // console.log('labelDesc: ',labelDesc)//ni cable splicing
+    // console.log('arrKeys: ',arrKeys)//ni cable yang masuk ke eq
+    // console.log('new_desc: ',new_desc)//ni port
+    let popupContent = `
+    <div class="custom-popup">
+        <div id="page1">
+            <h2><strong>${name} : </strong> Splicing Information (simplified)</h2>
+            <strong>${new_name}</strong><br>
+            ${labelDesc.join('')}
+            ${arrKeys.join('<br>')}<br> 
+            ${new_desc.join('<br>')}<br>
+        </div>
 
-      // Create circle marker
-      let color = 'green'
-      let fillColor = 'rgb(144, 238, 144)' //lightgreen
-      let desc = 'HH with no Equipment'
-      let arr = [fillColor,color,desc]
-      if (!itemExists(arr, legendItems)) {
-          legendItems.push(arr);
-      }
-      if(HH_coordinate[hh_index][3] == 'PS'){
-        hh_PS.push((HH_coordinate[hh_index][0]))
-      }
+        <div id="page2" style="display: none;">
+            <h2><strong>${name} : </strong> Splicing Information</h2><br>
+            ${new_description}
+        </div>
 
-      geo_HHlayer = L.circleMarker([lat, lon], {
-        radius: 8,
-        color: color,
-        fillColor: fillColor,
-        fillOpacity: 1
-      });
-
-      geo_HHlayer.properties = {
-        name: name,
-        lat: lat,
-        long:lon
-      };
-      // Create a popup with the feature name
-      geo_HHlayer.bindPopup(popupContent);
-  
-      // Add a click event to show the popup
-      geo_HHlayer.on('click', function() {
-          this.openPopup();
-          if(Layers.length > 0){
-            //console.log('ID:', this.properties.name);
-            let HHname = this.properties.name
-            if(psPress != true){
-              HighlightFiberPath(HHname)
-            }
-            DisplayFiberPath(HHname)
+        <div id="page3" style="display: none;">
+            <h2><strong>${name} : </strong> Equipment</h2>
+            ${eq_desc}
+        </div>
+        <div id="navigation">
+            <button onclick="showPage(1)">1</button>
+            <button onclick="showPage(2)">2</button>
+            <button onclick="showPage(3)">3</button>
+        </div>
+    </div>
+  `;
+    let additionalStyles = `
+      <style>
+          .custom-popup {
+              max-height: 200px;
+              max-width: 300px;
+              overflow-y: auto;
           }
-      });
-      storeHHColor.push([name, color, fillColor])
-      geo_HHlayer.addTo(map)
-      HHlayer.push(geo_HHlayer)
-    })
-    
-    let lat = HH_coordinate[0][1]
-    let long = HH_coordinate[0][2]
-    let zoomLevel = 15
-    map.setView([lat, long], zoomLevel);
+      </style>
+    `;
+    document.head.innerHTML += additionalStyles;
+
+    // Create circle marker
+    let color = 'green'
+    let fillColor = 'rgb(144, 238, 144)' //lightgreen
+    let desc = 'HH with no Equipment'
+    let arr = [fillColor,color,desc]
+    if (!itemExists(arr, legendItems)) {
+        legendItems.push(arr);
+    }
+    if(HH_coordinate[hh_index][3] == 'PS'){
+      hh_PS.push((HH_coordinate[hh_index][0]))
+    }
+
+    geo_HHlayer = L.circleMarker([lat, lon], {
+      radius: 8,
+      color: color,
+      fillColor: fillColor,
+      fillOpacity: 1
+    });
+
+    geo_HHlayer.properties = {
+      name: name,
+      lat: lat,
+      long:lon
+    };
+    // Create a popup with the feature name
+    geo_HHlayer.bindPopup(popupContent);
+
+    // Add a click event to show the popup
+    geo_HHlayer.on('click', function() {
+        this.openPopup();
+        if(Layers.length > 0){
+          //console.log('ID:', this.properties.name);
+          let HHname = this.properties.name
+          if(psPress != true){
+            HighlightFiberPath(HHname)
+          }
+          DisplayFiberPath(HHname)
+        }
+    });
+    storeHHColor.push([name, color, fillColor])
+    geo_HHlayer.addTo(map)
+    HHlayer.push(geo_HHlayer)
+  })
+  let lat = HH_coordinate[0][1]
+  let long = HH_coordinate[0][2]
+  let zoomLevel = 15
+  map.setView([lat, long], zoomLevel);
+  countDrop = 0
+  for(let HHname in HH_Before){
+    if(HH_Before[HHname]['Drop'].length> 0){
+      countDrop += HH_Before[HHname]['Drop'].length
+    }
+  }
+  console.log('Total Unconnected Drop: ', countDrop)
 }
 
 let failTracingHH = [], newlegendItems =[]
@@ -2263,6 +2270,9 @@ function DisplayFiberPath(HHname){
         }
         let cable = cableIn.split('_to_')[0]
         let dir = findDirection(HHname,cableIn)
+        if(dir == undefined){
+          dir = ['?',1]
+        }
         cablePath += `Cable: ${cable} (${dir[0]})`
         cablePath +=`<table border="1 style="margin: auto;" > 
           <tr>

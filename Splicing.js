@@ -612,7 +612,9 @@ function StoreSplicingInfo(){
     for(let sub_name in cableInfo[HH]['SpliceInfo']){
       Passthrough = {}
       arrOfSplice = cableInfo[HH]['SpliceInfo'][sub_name]
-      cableInfo[HH]['SpliceInfo'][sub_name] = simplifiedSplicing(arrOfSplice)
+      if(arrOfSplice.length != 0){
+        cableInfo[HH]['SpliceInfo'][sub_name] = simplifiedSplicing(arrOfSplice)
+      }
     }
     for(let FiberName in cableInfo[HH]['Equipment']){
       for(let fNumber in cableInfo[HH]['Equipment'][FiberName]){
