@@ -708,7 +708,7 @@ function StoreSplicingInfo(){
                           i = arr1[fiberin].length
                           break;
                         }
-                      }                     
+                      }
                       else{
                         newFibername = newFibername_old
                       }
@@ -718,6 +718,9 @@ function StoreSplicingInfo(){
               }
             }
           }
+        }
+        if(newFibername == undefined){
+          newFibername = cablename
         }
         //console.log('newFibername: ',newFibername)
         cableInfo[HH]['Equipment'][newFibername] = cableInfo[HH]['Equipment'][cablename]
@@ -762,7 +765,6 @@ function StoreSplicingInfo(){
     console.log('eqFromCableSheet: ',eqFromCableSheet)
     return cableInfo
 }
-
 //add HH into Map
 let countDrop
 function AddHHintoMap(){
@@ -1485,7 +1487,7 @@ function TraceFiber(){
       let cableIn = cable[0], HHTo = cable[1]
       let destination = false, currentHH = HH
       let value = fiberIN
-
+      let count = 0
       while (destination == false){
         temp_dict.push([value,cableIn,currentHH,HHTo])
         let notfound = true
@@ -1582,13 +1584,19 @@ function TraceFiber(){
           }
           HHtoObserve[HH][fiberIN] = temp_dict
         }
+        if(count > 50){
+          destination = true
+          console.log('HH ni tak jumpak', HH)
+          console.log(HHtoObserve[HH])
+          temp_fail.push(fiberIN)
+        }
+        count += 1
       }
     }
     if(temp_fail.length > 0){
       HHtoObserve[HH]['Fail'] = temp_fail
     }
   }
-
   //store HH if primary doesnt exist in HHfromPS
   for(let i = 0; i < hh_PS.length; i++){
     //get unique cableOut
@@ -1617,7 +1625,6 @@ function TraceFiber(){
       }
     }
   }
-
   console.log('hh_PS: ',hh_PS)
   //Find end HH for incoming fiber in PS
   for(let HH in hhFromPS){

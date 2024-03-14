@@ -326,7 +326,6 @@ function StoreSplicingInfo(){
         checkHHname.push(key)
       }
       else{
-        console.log('key: ',key)
         duplicateHH.push(key)
         key = `${key}_${nameHH}`
         //duplicateHH.push(key)
@@ -615,6 +614,11 @@ function StoreSplicingInfo(){
       if(arrOfSplice.length != 0){
         cableInfo[HH]['SpliceInfo'][sub_name] = simplifiedSplicing(arrOfSplice)
       }
+      else{
+        //console.log('HH: ',HH)
+        //console.log("cableInfo[HH]['SpliceInfo']: ",cableInfo[HH]['SpliceInfo'])
+        //console.log("cableInfo[HH]['Equipment']: ",cableInfo[HH]['Equipment'])
+      }
     }
     for(let FiberName in cableInfo[HH]['Equipment']){
       for(let fNumber in cableInfo[HH]['Equipment'][FiberName]){
@@ -703,6 +707,9 @@ function StoreSplicingInfo(){
         }
       }
       //console.log('newFibername: ',newFibername)
+      if(newFibername == undefined){
+        newFibername = cablename
+      }
       cableInfo[HH]['Equipment'][newFibername] = cableInfo[HH]['Equipment'][cablename]
       delete cableInfo[HH]['Equipment'][cablename]
     }
@@ -715,6 +722,9 @@ function StoreSplicingInfo(){
       for(let fNumber in cableInfo[HH]['Equipment'][FiberName]){
         fNumber_arr.push(fNumber)
       }
+      // console.log('HH: ',HH)
+      // console.log('FiberName: ',FiberName)
+      // console.log(cableInfo[HH])
       let len = fNumber_arr.length - 1
       let eqInfo = [`${fNumber_arr[0]}-${fNumber_arr[len]}`, '' ,'Equipment']
       cableInfo[HH]['SpliceInfo'][FiberName].push(eqInfo)
@@ -853,7 +863,7 @@ function AddHHintoMap(){
     for(let i = 0; i< duplicateHH.length; i++){
       popup += `${duplicateHH[i]}\n`
     }
-    alert("Duplicate HH's name: \n" + popup)
+    //alert("Duplicate HH's name: \n" + popup)
   }
 
   //create HH into map
@@ -1192,7 +1202,7 @@ function CompareSplicing(){
           }
           
           if(temp_arrAfter.length == 0){
-            temp_checkError.push(HH,'Wrong cable input')
+            temp_checkError.push(HH,'Wrong cable input -- line 1205')
           }
           else{
             for(let fiber in HH_Before[HH]["Equipment"][keys]){
@@ -1250,7 +1260,6 @@ function CompareSplicing(){
           checkError['Equipment'].push(temp_checkError)
         }
       }
-  
       //compare splice before and after
       for(let keys in HH_Before[HH]["SpliceInfo"]){
         let temp_checkError = []
@@ -1277,7 +1286,7 @@ function CompareSplicing(){
           if(!new_passthrough.includes(keys_HH)){
             let len_before = HH_Before[HH]["SpliceInfo"][keys].length
             //cari keys untuk hhafter
-            let temp_arrAfter =[]
+            let temp_arrAfter =[], temp_che = false
             for(let keys_2 in HH_After[HH]["SpliceInfo"]){
               let nameHHto1 = keys.split(`_to_`)
               let nameHHto2 = keys_2.split(`_to_`)
@@ -1299,11 +1308,12 @@ function CompareSplicing(){
               let len2 = HH_After[HH]["SpliceInfo"][keys_2].length
               if(nameHHto1[1] == nameHHto2[1] && len1 == len2 && LAorBB1 == LAorBB2){
                 temp_arrAfter = HH_After[HH]["SpliceInfo"][keys_2]
+                temp_che = true
                 break;
               }
             }
-            if(temp_arrAfter.length == 0){
-              temp_checkError.push(HH,'Wrong cable input')
+            if(temp_che == false){
+              temp_checkError.push(HH,'Wrong cable input -- line 1316')
             }
             else{
               for(let i = 0; i < len_before; i++ ){
@@ -1360,10 +1370,10 @@ function CompareSplicing(){
           }
           
         }
-        else{ 
+        else{
           let len_before = HH_Before[HH]["SpliceInfo"][keys].length
           //cari keys untuk hhafter
-          let temp_arrAfter =[]
+          let temp_arrAfter =[], temp_che = false
           for(let keys_2 in HH_After[HH]["SpliceInfo"]){
             let nameHHto1 = keys.split(`_to_`)
             let nameHHto2 = keys_2.split(`_to_`)
@@ -1381,16 +1391,24 @@ function CompareSplicing(){
             else if (nameHHto2[0].includes('BB')){
               LAorBB2 = 'BB'
             }
-            
             let len1 = HH_Before[HH]["SpliceInfo"][keys].length
             let len2 = HH_After[HH]["SpliceInfo"][keys_2].length
+            // if( HH == 'BWK7-05-01-01-01-HH'){
+            //   console.log('LAorBB1: ',LAorBB1, '\nLAorBB2: ',LAorBB2)
+            //   console.log(LAorBB1 == LAorBB2)
+            //   console.log('nameHHto1: ',nameHHto1[1], '\nnameHHto2: ',nameHHto2[1])
+            //   console.log(nameHHto1[1] == nameHHto2[1])
+            //   console.log('len1: ',len1, '\nlen2: ',len2)
+            //   console.log(len1 == len2)
+            // }
             if(nameHHto1[1] == nameHHto2[1] && len1 == len2 && LAorBB1 == LAorBB2){
               temp_arrAfter = HH_After[HH]["SpliceInfo"][keys_2]
+              temp_che = true
               break;
             }
           }
-          if(temp_arrAfter.length == 0){
-            temp_checkError.push(HH,'Wrong cable input')
+          if(temp_che == false){
+            temp_checkError.push(HH,'Wrong cable input- line 1411')
           }
           else{
             for(let i = 0; i < len_before; i++ ){
@@ -1508,7 +1526,7 @@ function CompareSplicing(){
           }
           
           if(temp_arrAfter.length == 0){
-            temp_checkError.push(HH,'Wrong cable input')
+            temp_checkError.push(HH,'Wrong cable input -- line1529')
           }
           else{
             for(let fiber in HH_Before[HH]["Equipment"][keys]){
@@ -1573,6 +1591,10 @@ function CompareSplicing(){
         passthrough = HH_After[HH]['Passthrough']
         let new_passthrough =[]
         //adjust input inside passthrough to HH
+        if(passthrough == undefined){
+          HH_After[HH]['Passthrough'] = {}
+          passthrough = HH_After[HH]['Passthrough']
+        }
         for(let i = 0; i< passthrough.length; i++){
           let _to = passthrough[i].split('_to_')[1]
           new_passthrough.push(_to)
@@ -1591,7 +1613,7 @@ function CompareSplicing(){
           if(!new_passthrough.includes(keys_HH)){
             let len_before = HH_Before[HH]["SpliceInfo"][keys].length
             //cari keys untuk hhafter
-            let temp_arrAfter =[]
+            let temp_arrAfter =[], temp_che = false
             for(let keys_2 in HH_After[HH]["SpliceInfo"]){
               let nameHHto1 = keys.split(`_to_`)
               let nameHHto2 = keys_2.split(`_to_`)
@@ -1614,11 +1636,12 @@ function CompareSplicing(){
               let len2 = HH_After[HH]["SpliceInfo"][keys_2].length
               if(nameHHto1[1] == nameHHto2[1] && len1 == len2 && LAorBB1 == LAorBB2){
                 temp_arrAfter = HH_After[HH]["SpliceInfo"][keys_2]
+                temp_che = true
                 break;
               }
             }
-            if(temp_arrAfter.length == 0){
-              temp_checkError.push(HH,'Wrong cable input')
+            if(temp_che == false){
+              temp_checkError.push(HH,'Wrong cable input -- line 1644')
             }
             else{
               for(let i = 0; i < len_before; i++ ){
@@ -1678,7 +1701,7 @@ function CompareSplicing(){
         else{ 
           let len_before = HH_Before[HH]["SpliceInfo"][keys].length
           //cari keys untuk hhafter
-          let temp_arrAfter =[]
+          let temp_arrAfter =[], temp_che = false
           for(let keys_2 in HH_After[HH]["SpliceInfo"]){
             let nameHHto1 = keys.split(`_to_`)
             let nameHHto2 = keys_2.split(`_to_`)
@@ -1701,11 +1724,12 @@ function CompareSplicing(){
             let len2 = HH_After[HH]["SpliceInfo"][keys_2].length
             if(nameHHto1[1] == nameHHto2[1] && len1 == len2 && LAorBB1 == LAorBB2){
               temp_arrAfter = HH_After[HH]["SpliceInfo"][keys_2]
+              temp_che = true
               break;
             }
           }
-          if(temp_arrAfter.length == 0){
-            temp_checkError.push(HH,'Wrong cable input')
+          if(temp_che == false){
+            temp_checkError.push(HH,'Wrong cable input -- line 1732')
           }
           else{
             for(let i = 0; i < len_before; i++ ){
