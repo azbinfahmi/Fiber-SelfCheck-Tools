@@ -151,6 +151,7 @@ function AddNewLayer(event) {
             let result
             let coord = all_feature[layersID].feature.geometry.coordinates
             let cableName = all_feature[layersID].feature.properties.ID
+            let FiberCapac = all_feature[layersID].feature.properties['Fiber Capacity']
             first_coord = [coord[0][1], coord[0][0]]
             last_coord = [coord[coord.length - 1][1], coord[coord.length - 1][0]]
             let result1 = findShortestDistanceAndHH(first_coord, HH_coordinate)
@@ -160,7 +161,7 @@ function AddNewLayer(event) {
             let HH1 = result1[1]
             let dist2 = result2[0]
             let HH2 = result2[1]
-            result = [layersID,HH1,HH2,cableName]
+            result = [layersID,HH1,HH2,cableName, FiberCapac]
             if(dist1>150){
                 HH1 = 'Unknown Network Point'
                 result = [layersID,HH2,HH1,cableName]
@@ -179,7 +180,7 @@ function AddNewLayer(event) {
                         if(i == 0){
                             for(let word in HH_Before[result[1]]['Info']){
                                 let arr = HH_Before[result[1]]['Info'][word]
-                                if(arr[0] == result[3] && arr[4] == result[2]){
+                                if(arr[0] == result[3] && arr[4] == result[2] && arr[1] == result[4]){
                                     arr[5] = result[0]
                                     isResult = true
                                     break
@@ -232,7 +233,7 @@ function AddNewLayer(event) {
                         let info = HH_Before[arr[i][2]]['Info']
                         for(let words in info){
                             if(info[words].length == 6){
-                                if(arr[i][1] == info[words][0] && arr[i][3] == info[words][4]){
+                                if(arr[i][1] == `${info[words][0]}_#${info[words][1]}` && arr[i][3] == info[words][4]){
                                     arr[i][4] = info[words][5]
                                 }
                             } 

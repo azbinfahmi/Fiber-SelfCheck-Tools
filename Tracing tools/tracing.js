@@ -233,11 +233,19 @@ function StoreSplicingInfo(){
     }
     //use in Info keys untuk ambik fiber tu ke HH mana
     function extractValueBetweenToAndComma(input) {
-      const startIndex = input.indexOf('to') + 3; // Adding 3 to skip 'to' and the following space
-      const endIndex = input.indexOf(',', startIndex);
-      const result = input.substring(startIndex, endIndex).trim();
-      return result;
-    }
+      const toIndex = input.indexOf(' to ');
+      if (toIndex !== -1) {
+          const substringAfterTo = input.substring(toIndex + 4); // Adding 4 to skip ' to ' and the following space
+          const commaIndex = substringAfterTo.indexOf(', ');
+          if (commaIndex !== -1) {
+              return substringAfterTo.substring(0, commaIndex).trim();
+          } else {
+              return substringAfterTo.trim();
+          }
+      } else {
+          return "Unknown Network Point";
+      }
+  }
     //get direction
     function getDirectionFromString(str) {
       let words = str.split(' ');
@@ -256,7 +264,7 @@ function StoreSplicingInfo(){
       if(keyword == ''){
         return ''
       }
-      return `${arr[0]}_to_${arr[4]}`
+      return `${arr[0]}_#${arr[1]}_to_${arr[4]}`
     }
     //use in 'bawak masuk info dari cableinfo Equipment untuk show cable'
     function formatArray(arr) {
@@ -398,7 +406,7 @@ function StoreSplicingInfo(){
                   let startCode = cellColumn.charCodeAt(0) - 1
                   let currentLetter = String.fromCharCode(startCode);
                   let currentcableName = sheet[`${currentLetter}${Number(cellRow)-1}`].v.split(" ")[1]
-                  newCableName = `${cableInfo[key]['Info'][currentcableName][0]}_to_${cableInfo[key]['Info'][currentcableName][4]}`
+                  newCableName = `${cableInfo[key]['Info'][currentcableName][0]}_#${cableInfo[key]['Info'][currentcableName][1]}_to_${cableInfo[key]['Info'][currentcableName][4]}`
                   //pick fiber info from splicing row
                   let eqName, fiber_IN
                   for(let rowIndex = Number(cellRow) + 1; rowIndex <= maxrow; rowIndex++){
@@ -681,13 +689,14 @@ function StoreSplicingInfo(){
     for(let HH in cableInfo){
       // console.log(HH)
       for(let cablename in cableInfo[HH]['Equipment']){
-        let arr1 = cableInfo[HH]['Equipment'][cablename], newFibername,newFibername_old
+        let arr1 = cableInfo[HH]['Equipment'][cablename], newFibername, newFibername_old
         for(let fiberin in arr1){
           for(let cablename1 in eqFromCableSheet[HH]['EqInfo_Edited']){
             let name = cablename1.split('_to_')
             let arr2 = eqFromCableSheet[HH]['EqInfo_Edited'][cablename1]
             for(let fiberin2 in arr2){
-              if(fiberin2 === fiberin && name[0]==cablename){
+              // console.log('name[0]: ',name[0], '\ncablename: ',cablename)
+              if(fiberin2 === fiberin && name[0].includes(cablename)){
                 newFibername = cablename1
                 for(let i = 0; i < arr1[fiberin].length; i++){
                   // if(HH == 'HH-00002251'){
@@ -725,9 +734,10 @@ function StoreSplicingInfo(){
         //console.log('newFibername: ',newFibername)
         cableInfo[HH]['Equipment'][newFibername] = cableInfo[HH]['Equipment'][cablename]
         delete cableInfo[HH]['Equipment'][cablename]
+        //console.log('newFibername: ',newFibername)
+        //console.log("cableInfo[HH]['Equipment'][newFibername]",cableInfo[HH]['Equipment'][newFibername])
       }
     }
-
     //bawak masuk info dari cableinfo Equipment untuk show cable mana yang amsuk ke dalam equipment
     for (let HH in cableInfo){
       // console.log('HH',HH)
@@ -790,7 +800,9 @@ function AddHHintoMap(){
   }
   function findDirection(HHName,fiberName){
     const splitNames = fiberName.split('_to_');
-    let namecable = splitNames[0]
+    let namecableCapac = splitNames[0].split('_#')
+    let namecable = namecableCapac[0]
+    let FiberCapac = namecableCapac[1]
     let nameHH = splitNames[1]
     let countHH = 0
     let Info = HH_Before[HHName]['Info']
@@ -801,7 +813,8 @@ function AddHHintoMap(){
       }
     }
     for (let words in Info){
-      if(namecable == Info[words][0] && nameHH == Info[words][4]){
+      if(namecable == Info[words][0] && nameHH == Info[words][4] 
+        && FiberCapac == Info[words][1]){
         return [Info[words][3], countHH]
       }
     }
