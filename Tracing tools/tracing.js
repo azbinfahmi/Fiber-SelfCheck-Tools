@@ -834,13 +834,16 @@ function AddHHintoMap(){
         let current = parseInt(arr[i][0]);
         let currentValue = arr[i][1];
 
+        let namecableCapac = arr[0][2].split('_#')
+        let namecable = `${namecableCapac[1]}F ${namecableCapac[0]}`
+        arr[0][2] = namecable
         if (current === end + 1 && currentValue === sameValue) {
             end = current;
         } else {
             if (start === end) {
                 let totalValue = end - start + 1
                 if(arr[i][4] > 1){
-                  result.push(`In (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${newValue}`)
+                  result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
                 }
                 else{
                   result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
@@ -851,7 +854,7 @@ function AddHHintoMap(){
               else {
                 let totalValue = end - start + 1
                 if(arr[i][4] > 1){
-                  result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${newValue}`)
+                  result.push(`In ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
                 }
                 else{
                   result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
@@ -868,14 +871,22 @@ function AddHHintoMap(){
     // Add the last range
     if (start === end) {
         let totalValue = end - start + 1
-        //result.push(start.toString() + ' ' + sameValue + ' ' + arr[0][2]);
-        // result.push(`In (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
-        result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+        if(arr[0][4] > 1){
+
+          result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+        }
+        else{
+          result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+        }
 
       } else {
         let totalValue = end - start + 1
-        //result.push(start.toString() + '-' + end.toString() + ' ' + sameValue + ' ' +  arr[0][2]);
-        result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+        if(arr[0][4] > 1){
+          result.push(`In ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+        }
+        else{
+          result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+        }
     }
 
     return result;
@@ -891,10 +902,18 @@ function AddHHintoMap(){
       const lastIndex = namecable.lastIndexOf('-');
       if (lastIndex !== -1 && lastIndex < namecable.length - 1) {
         if(!namecable.substring(lastIndex + 1).includes('FOC')){
-          return namecable.substring(lastIndex - 3);
+          namecable = namecable.substring(lastIndex - 3);
+          if(!namecable.includes('FOC')){
+            namecable = `FOC${namecable}`
+          }
+          return namecable
         }
         else{
-          return namecable.substring(lastIndex + 1);
+          namecable = namecable.substring(lastIndex + 1);
+          if(!namecable.includes('FOC')){
+            namecable = `FOC${namecable}`
+          }
+          return namecable
         }
         
       } else {
@@ -1125,9 +1144,13 @@ function AddHHintoMap(){
           let directionIn = direction[0]
           let countIn = direction[1]
           //let layersID = direction[2]
-          
-          let foc_in = extractFOC(fibername)
-          let foc_out = extractFOC(arr[i][2])
+          let focInwithCapac = extractFOC(fibername).split('_#')
+          let foc_in = focInwithCapac[0]
+          let focInCapac = focInwithCapac[1] + 'F'
+          let focOutwithCapac = extractFOC(arr[i][2]).split('_#')
+          let foc_out = focOutwithCapac[0]
+          let focOutCapac = focOutwithCapac[1] + 'F'
+
           if(arr[i][2] === "Equipment"){
             continue
           }
@@ -1136,13 +1159,13 @@ function AddHHintoMap(){
             let directionOut = direction[0]
             let countOut = direction[1]
             if(countIn > 1 && countOut> 1){
-              labelDesc.push(`In ${foc_out}(${arr[i][1]})${directionOut} Out ${foc_in}(${arr[i][0]})${directionIn}<br>`)
+              labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
             }
             else if(countIn > 1){
-              labelDesc.push(`In (${arr[i][1]}) (${directionOut}) Out ${foc_in}(${arr[i][0]})${directionIn}<br>`)
+              labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
             }
             else if(countOut > 1){
-              labelDesc.push(`In ${foc_out}(${arr[i][1]})${directionOut} Out (${arr[i][0]})${directionIn}<br>`)
+              labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)
             }
             else{
               labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)    
