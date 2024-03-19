@@ -830,44 +830,40 @@ function AddHHintoMap(){
     else{
       newValue = 'Primary Splitter'
     }
+
+    let namecableCapac = arr[0][2].split('_#')
+    let namecable = `${namecableCapac[1]}F ${namecableCapac[0]}`
+    arr[0][2] = namecable
+
     for (let i = 1; i < arr.length; i++) {
-        let current = parseInt(arr[i][0]);
-        let currentValue = arr[i][1];
-
-        let namecableCapac = arr[0][2].split('_#')
-        let namecable = `${namecableCapac[1]}F ${namecableCapac[0]}`
-        arr[0][2] = namecable
-        if (current === end + 1 && currentValue === sameValue) {
-            end = current;
-        } else {
-            if (start === end) {
-                let totalValue = end - start + 1
-                if(arr[i][4] > 1){
-                  result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-                }
-                else{
-                  result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-                }
-                //result.push(start.toString() + ' ' + sameValue);
-                // result.push(`IN (${start.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
-              } 
-              else {
-                let totalValue = end - start + 1
-                if(arr[i][4] > 1){
-                  result.push(`In ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-                }
-                else{
-                  result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-                }
-                //result.push(start.toString() + '-' + end.toString() + ' ' + sameValue);
-                // result.push(`IN (${start.toString()}-${end.toString()}) ${arr[0][2]}(${arr[0][3]}) Out ${totalValue} ${sameValue}`)
+      let current = parseInt(arr[i][0]);
+      let currentValue = arr[i][1];
+      if (current === end + 1 && currentValue === sameValue) {
+          end = current;
+      } else {
+          if (start === end) {
+              let totalValue = end - start + 1
+              if(arr[i][4] > 1){
+                result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
               }
-            start = current;
-            end = current;
-            sameValue = currentValue;
-        }
+              else{
+                result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+              }
+            } 
+            else {
+              let totalValue = end - start + 1
+              if(arr[i][4] > 1){
+                result.push(`In ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+              }
+              else{
+                result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+              }
+            }
+          start = current;
+          end = current;
+          sameValue = currentValue;
+      }
     }
-
     // Add the last range
     if (start === end) {
         let totalValue = end - start + 1
@@ -894,6 +890,10 @@ function AddHHintoMap(){
   function extractFOC(inputString) {
     const splitNames = inputString.split('_to_');
     let namecable = splitNames[0]
+    let isFOC = false
+    if(splitNames[0].includes('FOC')){
+      isFOC = true
+    }
     if(namecable.startsWith('LA') || namecable.startsWith('BB'))
     {
       return namecable
@@ -903,14 +903,14 @@ function AddHHintoMap(){
       if (lastIndex !== -1 && lastIndex < namecable.length - 1) {
         if(!namecable.substring(lastIndex + 1).includes('FOC')){
           namecable = namecable.substring(lastIndex - 3);
-          if(!namecable.includes('FOC')){
+          if(!namecable.includes('FOC') && isFOC == true){
             namecable = `FOC${namecable}`
           }
           return namecable
         }
         else{
           namecable = namecable.substring(lastIndex + 1);
-          if(!namecable.includes('FOC')){
+          if(!namecable.includes('FOC') && isFOC == true){
             namecable = `FOC${namecable}`
           }
           return namecable
@@ -1231,6 +1231,9 @@ function AddHHintoMap(){
             }
           }       
         }
+      }
+      if(name == 'SHA1-01-012-001'){
+        console.log('arrKeys: ',arr_check)
       }
       arrKeys.push(groupConsecutiveNumbersWithSameValue(arr_check))
       
