@@ -1684,13 +1684,6 @@ function TraceFiber(){
           for(let j = 0; j < arr.length; j++){
             let range = arr[j][0]
             if(isInRange(value, range)){
-              // if(HH == 'FWB2-08-02-04-01-HH'){
-              //   console.log('currentHH: ',currentHH)
-              //   console.log('HHTo: ',HHTo)
-              //   console.log('arr full: ',arr)
-              //   console.log('arr[j]: ',arr[j])
-              //   console.log('value: ',value)
-              // }
               if(arr[j][2] == 'Cut' || arr[j][2] == 'Equipment'){
                 notfound = true
                 break;
@@ -1909,7 +1902,9 @@ function DisplayFiberPath(HHname){
   }
   function findDirection(HHName,fiberName){
     const splitNames = fiberName.split('_to_');
-    let namecable = splitNames[0]
+    let namecableCapac = splitNames[0].split('_#')
+    let namecable = namecableCapac[0]
+    let FiberCapac = namecableCapac[1]
     let nameHH = splitNames[1]
     let countHH = 0
     let Info = HH_Before[HHName]['Info']
@@ -1920,7 +1915,8 @@ function DisplayFiberPath(HHname){
       }
     }
     for (let words in Info){
-      if(namecable == Info[words][0] && nameHH == Info[words][4]){
+      if(namecable == Info[words][0] && nameHH == Info[words][4]
+        && FiberCapac == Info[words][1]){
         return [Info[words][3], countHH]
       }
     }
@@ -2094,14 +2090,6 @@ function DisplayFiberPath(HHname){
         for(let fIn in hhFromPS[HH]['IncomingFiber'][cable]){
           let arr1 = hhFromPS[HH]['IncomingFiber'][cable][fIn]
           let len = arr1.length -1
-          //ni kalau PS tu last kat sini
-          // if(HHName == arr1[len][3]){
-          //   if(HH == 'HH-00006048'){
-          //     console.log('arr1[len]: ',arr1[len])
-          //     console.log('fIn: ',fIn)
-          //   }
-          //   path_FibertoPS[arr1[len][0]] = arr1
-          // }
           //ni kalau Primary tu lalu HH ni
           let temp = []
           for(let i = 0; i < arr1.length; i++){

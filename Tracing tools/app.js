@@ -79,12 +79,13 @@ function AddNewLayer(event) {
         }
         //insert layer ID and fix HH that used old fibername
         function insertLayersID (result){
+            console.log('result',result)
             //change dekat HHbefore[info]
             for(let word in HH_Before[result[0]]['Info']){
                 let arr = HH_Before[result[0]]['Info'][word]
-                if(arr[0] == result[1] && arr[5] == undefined){
-                    let oldCablername = `${arr[0]}_to_${arr[4]}`
-                    let newCableName = `${arr[0]}_to_${result[2]}`
+                if(arr[0] == result[1] && arr[1] == result[4] && arr[5] == undefined){
+                    let oldCablername = `${arr[0]}_#${arr[1]}_to_${arr[4]}`
+                    let newCableName = `${arr[0]}_#${arr[1]}_to_${result[2]}`
                     arr[4] = result[2]
                     arr[5] = result[3]
 
@@ -161,14 +162,14 @@ function AddNewLayer(event) {
             let HH1 = result1[1]
             let dist2 = result2[0]
             let HH2 = result2[1]
-            result = [layersID,HH1,HH2,cableName, FiberCapac]
+            result = [layersID,HH1,HH2,cableName,FiberCapac]
             if(dist1>150){
                 HH1 = 'Unknown Network Point'
-                result = [layersID,HH2,HH1,cableName]
+                result = [layersID,HH2,HH1,cableName, FiberCapac]
             }
             if(dist2>150){
                 HH2 = 'Unknown Network Point'
-                result = [layersID,HH1,HH2,cableName]
+                result = [layersID,HH1,HH2,cableName, FiberCapac]
             }
             if(dist1>150 && dist2>150){
                 result =[]
@@ -187,19 +188,19 @@ function AddNewLayer(event) {
                                 }
                             }
                             if(isResult == false){
-                                WrongSplicingData.push([result[1],result[3],result[2],result[0]])
+                                WrongSplicingData.push([result[1],result[3],result[2],result[0],result[4]])
                             }
                         }
                         else{
                             for(let word in HH_Before[result[2]]['Info']){
                                 let arr = HH_Before[result[2]]['Info'][word]
-                                if(arr[0] == result[3] && arr[4] == result[1]){
+                                if(arr[0] == result[3] && arr[4] == result[1] && arr[1] == result[4]){
                                     arr[5] = result[0]
                                     isResult = true
                                 }
                             }
                             if(isResult == false){
-                                WrongSplicingData.push([result[2],result[3],result[1],result[0]])
+                                WrongSplicingData.push([result[2],result[3],result[1],result[0],result[4]])
                             }
                         }
                     }
@@ -207,7 +208,7 @@ function AddNewLayer(event) {
                 else{
                     for(let word in HH_Before[result[1]]['Info']){
                         let arr = HH_Before[result[1]]['Info'][word]
-                        if(arr[0] == result[3] && arr[4] == result[2]){
+                        if(arr[0] == result[3] && arr[4] == result[2] && arr[1] == result[4]){
                             arr[5] = result[0]
                         }
                     }
@@ -245,12 +246,14 @@ function AddNewLayer(event) {
         //assign feature ID into incoming fiber from PS
         function findLayerID(arr){
             let HH = arr[2]
-            let cable = arr[1]
+            let namecableCapac = arr[1].split('_#')            
+            let cable = namecableCapac[0]
+            let FiberCapac = namecableCapac[1]
             let fromHH = arr[3]
         
             let temp = HH_Before[HH]['Info']
             for(let word in temp){
-              if(temp[word][0] == cable && temp[word][4] == fromHH){
+              if(temp[word][0] == cable && temp[word][1] == FiberCapac && temp[word][4] == fromHH){
                 return temp[word][5]
               }
             }
