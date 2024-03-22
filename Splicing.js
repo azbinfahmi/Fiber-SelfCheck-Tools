@@ -333,7 +333,7 @@ function StoreSplicingInfo(){
       }
       const totalCable = CheckCableAttach(workbook.SheetNames)
       workbook.SheetNames.forEach(sheetName => {
-        if(sheetName.includes('DR') || sheetName.includes('Drop')){
+        if(sheetName.includes('DR-') || sheetName.includes('Drop')){
           //do nothing or skip drop file
         }
         else if(sheetName != "Equipment"){
@@ -445,11 +445,11 @@ function StoreSplicingInfo(){
                       fiber_IN = fiberVal
                     }
                     let check_cable = getCableOutfromInfo(key,cableVal)
-                    if(eqVal != "" && (cableVal == "" || check_cable.includes('DR') || check_cable.includes('Drop') )){
+                    if(eqVal != "" && (cableVal == "" || check_cable.includes('DR-') || check_cable.includes('Drop') )){
                       storeEQ.push(fiberVal, eqName)
                     }
                     else {
-                      if(!check_cable.includes('DR') || check_cable.includes('Drop')){
+                      if(!check_cable.includes('DR-') || check_cable.includes('Drop')){
                         storeEQ.push(fiber_IN , eqName, portVal, fVal, getCableOutfromInfo(key,cableVal))
                       }                    
                     }
@@ -512,7 +512,7 @@ function StoreSplicingInfo(){
                     fOutVal =""
                   }
                   //ni Secondary Splitter kalau dia no output
-                  if(fOutVal.includes('DR') || fOutVal.includes('Drop')){
+                  if(fOutVal.includes('DR-') || fOutVal.includes('Drop')){
                     fOutVal = ""
                   }
 

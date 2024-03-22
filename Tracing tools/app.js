@@ -79,7 +79,6 @@ function AddNewLayer(event) {
         }
         //insert layer ID and fix HH that used old fibername
         function insertLayersID (result){
-            console.log('result',result)
             //change dekat HHbefore[info]
             for(let word in HH_Before[result[0]]['Info']){
                 let arr = HH_Before[result[0]]['Info'][word]

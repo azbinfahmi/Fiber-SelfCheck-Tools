@@ -331,7 +331,7 @@ function StoreSplicingInfo(){
         }
         const totalCable = CheckCableAttach(workbook.SheetNames)
         workbook.SheetNames.forEach(sheetName => {
-          if(sheetName.includes('DR') || sheetName.includes('Drop')){
+          if(sheetName.includes('DR-') || sheetName.includes('Drop')){
             storeDR.push(sheetName)
           }
           //else if(sheetName != "Equipment" && sheetName.includes('(1)'))
@@ -441,11 +441,11 @@ function StoreSplicingInfo(){
                         fiber_IN = fiberVal
                       }
                       let check_cable = getCableOutfromInfo(key,cableVal)
-                      if(eqVal != "" && (cableVal == "" || check_cable.includes('DR') || check_cable.includes('Drop') )){ //
+                      if(eqVal != "" && (cableVal == "" || check_cable.includes('DR-') || check_cable.includes('Drop') )){ //
                         storeEQ.push(fiberVal, eqName)
                       }
                       else {
-                        if(!check_cable.includes('DR') || check_cable.includes('Drop')){
+                        if(!check_cable.includes('DR-') || check_cable.includes('Drop')){
                           storeEQ.push(fiber_IN , eqName, portVal, fVal, getCableOutfromInfo(key,cableVal))
                         }
                         else{
@@ -524,7 +524,7 @@ function StoreSplicingInfo(){
                       fOutVal =""
                     }
                     //ni Secondary Splitter kalau dia connect dengan drop
-                    if(fOutVal.includes('DR') || fOutVal.includes('Drop')){
+                    if(fOutVal.includes('DR-') || fOutVal.includes('Drop')){
                       if(cableInfo[key]['Drop'].includes(fOutVal)){
                         let drop = cableInfo[key]['Drop']
                         cableInfo[key]['Drop'] = drop.filter(value => value !== fOutVal)
@@ -804,7 +804,7 @@ function AddHHintoMap(){
     let namecable = namecableCapac[0]
     let FiberCapac = namecableCapac[1]
     let nameHH = splitNames[1]
-    let countHH = 0
+    let countHH = 0, countName = 0
     let Info = HH_Before[HHName]['Info']
     //nak cari HH tu ada berapa cable yang masuk kat dia
     for(let words in Info){
@@ -812,10 +812,15 @@ function AddHHintoMap(){
         countHH = countHH + 1
       }
     }
+    for(let words in Info){
+      if(namecable == Info[words][0]){
+        countName = countName + 1
+      }
+    }
     for (let words in Info){
       if(namecable == Info[words][0] && nameHH == Info[words][4] 
         && FiberCapac == Info[words][1]){
-        return [Info[words][3], countHH]
+        return [Info[words][3], countHH, countName]
       }
     }
   }
@@ -830,9 +835,11 @@ function AddHHintoMap(){
     else{
       newValue = 'Primary Splitter'
     }
-
     let namecableCapac = arr[0][2].split('_#')
-    let namecable = `${namecableCapac[1]}F ${namecableCapac[0]}`
+    let namecable = `${namecableCapac[0]}`
+    if(arr[0][5] > 1){
+      namecable = `${namecableCapac[1]}F ${namecableCapac[0]}`
+    }
     arr[0][2] = namecable
 
     for (let i = 1; i < arr.length; i++) {
@@ -868,7 +875,6 @@ function AddHHintoMap(){
     if (start === end) {
         let totalValue = end - start + 1
         if(arr[0][4] > 1){
-
           result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
         }
         else{
@@ -884,7 +890,6 @@ function AddHHintoMap(){
           result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
         }
     }
-
     return result;
   }
   function extractFOC(inputString) {
@@ -1143,7 +1148,7 @@ function AddHHintoMap(){
           let direction = findDirection(name,fibername)
           let directionIn = direction[0]
           let countIn = direction[1]
-          //let layersID = direction[2]
+          let countName = direction[2]
           let focInwithCapac = extractFOC(fibername).split('_#')
           let foc_in = focInwithCapac[0]
           let focInCapac = focInwithCapac[1] + 'F'
@@ -1158,18 +1163,35 @@ function AddHHintoMap(){
             let direction = findDirection(name,arr[i][2])
             let directionOut = direction[0]
             let countOut = direction[1]
-            if(countIn > 1 && countOut> 1){
-              labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
-            }
-            else if(countIn > 1){
-              labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
-            }
-            else if(countOut > 1){
-              labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)
+            if(countName > 1){
+              if(countIn > 1 && countOut> 1){
+                labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
+              }
+              else if(countIn > 1){
+                labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
+              }
+              else if(countOut > 1){
+                labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)
+              }
+              else{
+                labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)    
+              }
             }
             else{
-              labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)    
-            }              
+              if(countIn > 1 && countOut> 1){
+                labelDesc.push(`In ${foc_out} (${arr[i][1]}) ${directionOut} Out ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
+              }
+              else if(countIn > 1){
+                labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
+              }
+              else if(countOut > 1){
+                labelDesc.push(`In ${foc_out} (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)
+              }
+              else{
+                labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)    
+              }
+            }
+                       
           }
         }
       }
@@ -1179,16 +1201,17 @@ function AddHHintoMap(){
       let direction = findDirection(name,fibername)
       let directionIn = direction[0]
       let countIn = direction[1]
+      let countName = direction[2]
       let keys = Object.keys(HH_Before[name]['Equipment'][fibername])
       let arr_check =[]
 
       for(let i = 0; i < keys.length; i++){
         if(HH_Before[name]['Equipment'][fibername][keys[i]][0].length === 4){
-          arr_check.push([keys[i],'PS', extractFOC(fibername), directionIn, countIn])
+          arr_check.push([keys[i],'PS', extractFOC(fibername), directionIn, countIn, countName])
           HH_coordinate[hh_index][3] = 'PS'
         }
         else{
-          arr_check.push([keys[i],'DTS', extractFOC(fibername), directionIn, countIn])
+          arr_check.push([keys[i],'DTS', extractFOC(fibername), directionIn, countIn, countName])
           arrDTS.push([keys[i],fibername])
         }
         for(let j = 0; j <HH_Before[name]['Equipment'][fibername][keys[i]].length; j++ ){
@@ -1215,15 +1238,18 @@ function AddHHintoMap(){
             }
             let direction = findDirection(name,arr[3])              
             if(direction == undefined){
-              new_desc.push(`In (Port ${PortRange}) Out Secondary Splitter`)
+              new_desc.push(`In (Port ${PortRange}) Out 1 Secondary Splitter`)
             }
             else{
               let directionOut = direction[0]
               let countOut = direction[1]
-              let foc_out = extractFOC(arr[3])
-
+              let cablewithCapac = extractFOC(arr[3]).split('_#')
+              let foc_out = `${cablewithCapac[0]}`
+              if(countName>1){
+                foc_out = `${cablewithCapac[1]}F ${cablewithCapac[0]}`
+              }
               if(countOut> 1){
-                new_desc.push(`In (Port ${PortRange}) Out ${foc_out}(${arr[2]})${directionOut}`)
+                new_desc.push(`In (Port ${PortRange}) Out ${foc_out} (${arr[2]}) ${directionOut}`)
               }
               else{
                 new_desc.push(`In (Port ${PortRange}) Out (${arr[2]}) ${directionOut}`)
@@ -1232,13 +1258,7 @@ function AddHHintoMap(){
           }       
         }
       }
-      if(name == 'SHA1-01-012-001'){
-        console.log('arrKeys: ',arr_check)
-      }
       arrKeys.push(groupConsecutiveNumbersWithSameValue(arr_check))
-      
-      // console.log('new_desc: ',new_desc)
-      // console.log('arrKeys: ',arrKeys)
     }
     //store HH that has DTS
     if(arrDTS.length > 0){
@@ -1280,7 +1300,6 @@ function AddHHintoMap(){
       for(let fiberIn in HH_Before[name]['Equipment'][fibername]){
         let arr = HH_Before[name]['Equipment'][fibername][fiberIn]
 
-        //console.log('nameHH', name ,'\narr',arr)
         if(arr[0].length > 1){
           //eq_desc += `Primary Splitter <br> Fiber In: ${fiberIn} <br>`
           eq_desc += `<table class= "fiberTable" border="1" style = "position: relative;"><thead>
@@ -1932,7 +1951,7 @@ function DisplayFiberPath(HHname){
     let namecable = namecableCapac[0]
     let FiberCapac = namecableCapac[1]
     let nameHH = splitNames[1]
-    let countHH = 0
+    let countHH = 0, countName = 0
     let Info = HH_Before[HHName]['Info']
     //nak cari HH tu ada berapa cable yang masuk kat dia
     for(let words in Info){
@@ -1940,10 +1959,15 @@ function DisplayFiberPath(HHname){
         countHH = countHH + 1
       }
     }
+    for(let words in Info){
+      if(namecable == Info[words][0]){
+        countName = countName + 1
+      }
+    }
     for (let words in Info){
       if(namecable == Info[words][0] && nameHH == Info[words][4]
         && FiberCapac == Info[words][1]){
-        return [Info[words][3], countHH]
+        return [Info[words][3], countHH, countName]
       }
     }
   }
