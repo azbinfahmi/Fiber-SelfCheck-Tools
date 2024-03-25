@@ -741,6 +741,7 @@ function StoreSplicingInfo(){
 
 //add HH into Map
 function AddHHintoMap(){
+  console.log('HH_coordinateL : ',HH_coordinate)
   function convertToTable(description, arr_fibers) {
     var sections = description.split('<strong>').slice(1);
 

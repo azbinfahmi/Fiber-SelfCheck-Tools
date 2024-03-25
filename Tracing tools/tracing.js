@@ -341,6 +341,7 @@ function StoreSplicingInfo(){
             const sheet = workbook.Sheets[sheetName];
             const maxrow = sheet['!ref'].match(/(\d+)$/)[1]
             //cari Info dekat table info
+            let cellLat
             for(var cellref in sheet){
               if( cellref.match(/([A-Z]+)(\d+)/) != null){
                 const cellColumn = cellref.match(/([A-Z]+)(\d+)/)[1]
@@ -355,10 +356,22 @@ function StoreSplicingInfo(){
                     })
                   }
                 }
-                if( coord.length == 0 && HH_Before.length == 0){
-                  if (cellValue.includes("Lat") && cellValue.includes("Lon")){
-                    coord = extractCoordinates(cellValue)
-                    HH_coordinate.push([key,coord[0],coord[1],''])
+                if(coord.length == 0 && HH_Before.length == 0){
+                  if ((cellValue.includes("Lat") && cellValue.includes("Lon"))
+                  || (cellValue.includes("Lat") || cellValue.includes("Lon"))
+                  ){
+                    if(cellValue.includes("Lat") && cellValue.includes("Lon")){
+                      coord = extractCoordinates(cellValue)
+                      HH_coordinate.push([key,coord[0],coord[1],''])
+                    }
+                    else if (cellValue.includes("Lat")){
+                      cellLat = cellValue.split('Lat: ')[1]
+                    }
+
+                    else if (cellValue.includes("Lon")){
+                      let cellLon = cellValue.split('Lon: ')[1]
+                      HH_coordinate.push([key,cellLat,cellLon,''])
+                    }
                   }
                 }
               }
