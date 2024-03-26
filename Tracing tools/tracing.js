@@ -371,6 +371,7 @@ function StoreSplicingInfo(){
                     else if (cellValue.includes("Lon")){
                       let cellLon = cellValue.split('Lon: ')[1]
                       HH_coordinate.push([key,cellLat,cellLon,''])
+                      coord = [cellLat,cellLon]
                     }
                   }
                 }
@@ -993,7 +994,6 @@ function AddHHintoMap(){
           }
         }
       }
-
       //highlight the wrong cable
       if(diffLength){
         console.log('shortestKey: ',shortestKey)
