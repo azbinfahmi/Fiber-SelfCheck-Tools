@@ -1681,8 +1681,12 @@ function TraceFiber(){
     //assign missing cable
     const keys = Object.keys(hhFromPS);
     if(!keys.includes(hh_PS[i])){
-      for(let j = 0; j < unique_CableOut.length; j++){
-        temp_dict = {[unique_CableOut[j]] : {}}
+      // for(let j = 0; j < unique_CableOut.length; j++){
+      //   temp_dict = {[unique_CableOut[j]] : {}}
+      //   hhFromPS[hh_PS[i]] = temp_dict
+      // }
+      for(let cableOut in HH_Before[hh_PS[i]]['Equipment']){
+        temp_dict = {[cableOut] : {}}
         hhFromPS[hh_PS[i]] = temp_dict
       }
     }
@@ -2377,7 +2381,6 @@ function DisplayFiberPath(HHname){
     fiberPath = getConnectedPS(HHname)
     psPress = false
   }
-  
   content.innerHTML = fiberPath;
 }
 

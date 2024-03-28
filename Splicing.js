@@ -358,9 +358,21 @@ function StoreSplicingInfo(){
               }
 
               if( coord.length == 0 && HH_Before.length == 0){
-                if (cellValue.includes("Lat") && cellValue.includes("Lon")){
-                  coord = extractCoordinates(cellValue)
-                  HH_coordinate.push([key,coord[0],coord[1],''])
+                if ((cellValue.includes("Lat") && cellValue.includes("Lon"))
+                  || (cellValue.includes("Lat") || cellValue.includes("Lon"))){
+                  if(cellValue.includes("Lat") && cellValue.includes("Lon")){
+                    coord = extractCoordinates(cellValue)
+                    HH_coordinate.push([key,coord[0],coord[1],''])
+                  }
+                  else if (cellValue.includes("Lat")){
+                    cellLat = cellValue.split('Lat: ')[1]
+                  }
+
+                  else if (cellValue.includes("Lon")){
+                    let cellLon = cellValue.split('Lon: ')[1]
+                    HH_coordinate.push([key,cellLat,cellLon,''])
+                    coord = [cellLat,cellLon]
+                  }
                 }
               }
               
@@ -822,12 +834,6 @@ function AddHHintoMap(){
     if(namecable.startsWith('LA') || namecable.startsWith('BB'))
     {
       return namecable
-      // if(namecable.startsWith('LA')){
-      //   return 'LA'
-      // }
-      // else{
-      //   return 'BB'
-      // }
     }
     else{
       const lastIndex = namecable.lastIndexOf('-');
