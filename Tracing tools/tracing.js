@@ -365,11 +365,13 @@ function StoreSplicingInfo(){
                       HH_coordinate.push([key,coord[0],coord[1],''])
                     }
                     else if (cellValue.includes("Lat:")){
-                      cellLat = cellValue.split('Lat:')[1]
+                      cellLat = cellValue.split('Lat: ')[1]
+                      cellLat = Number(cellLat)
                     }
 
                     else if (cellValue.includes("Lon:")){
-                      let cellLon = cellValue.split('Lon:')[1]
+                      let cellLon = cellValue.split('Lon: ')[1]
+                      cellLon = Number(cellLon)
                       HH_coordinate.push([key,cellLat,cellLon,''])
                       coord = [cellLat,cellLon]
                     }
