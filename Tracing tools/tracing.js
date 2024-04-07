@@ -1657,13 +1657,16 @@ function TraceFiber(){
           }
           HHtoObserve[HH][fiberIN] = temp_dict
         }
-        if(count > 50){
+        if(count > 100){
           destination = true
           console.log('HH ni tak jumpak', HH)
+          if(!Object.keys(HHtoObserve).includes(HH)){
+            HHtoObserve[HH] = {}
+          }
           console.log(HHtoObserve[HH])
           temp_fail.push(fiberIN)
         }
-        count += 1
+        count = count + 1
       }
     }
     if(temp_fail.length > 0){
@@ -1683,10 +1686,6 @@ function TraceFiber(){
     //assign missing cable
     const keys = Object.keys(hhFromPS);
     if(!keys.includes(hh_PS[i])){
-      // for(let j = 0; j < unique_CableOut.length; j++){
-      //   temp_dict = {[unique_CableOut[j]] : {}}
-      //   hhFromPS[hh_PS[i]] = temp_dict
-      // }
       for(let cableOut in HH_Before[hh_PS[i]]['Equipment']){
         temp_dict = {[cableOut] : {}}
         hhFromPS[hh_PS[i]] = temp_dict
@@ -1722,19 +1721,12 @@ function TraceFiber(){
         let cableIn = cable[0], HHTo = cable[1]
         let destination = false, currentHH = HH
         let value = fiberIN
-
+        let count = 0
         while(destination == false){
           temp_dict.push([value,cableIn,currentHH,HHTo])
           let notfound = true
           let arr
           try{
-            // if(HH == 'FWB2-08-02-04-01-HH'){
-            //   console.log('HHTo: ',HHTo)
-            //   console.log('cableIn: ',cableIn)
-            //   console.log('currentHH: ',currentHH)
-            //   console.log('value: ',value)
-            // }
-
             arr = HH_Before[HHTo]['SpliceInfo'][`${cableIn}_to_${currentHH}`]
             if(arr == undefined){
               arr= []
@@ -1783,6 +1775,13 @@ function TraceFiber(){
             }
             hhFromPS[HH]['IncomingFiber'][fibername][fiberIN] = temp_dict;
           }
+
+          if(count > 100){
+            destination = true
+            console.log('HH ni tak jumpak', HH)
+            console.log('temp_dict: ',temp_dict)
+          }
+          count = count + 1
         }
       }
     }
@@ -1991,6 +1990,7 @@ function DisplayFiberPath(HHname){
     }
   }
   //function ni guna kalau user press ctrl + shift + p, guna untuk checkk PS mana yang datang dari Primary ni
+  let SGConnected = []
   function getConnectedPS(HHName){
     function mergeRowsBySGAndHH(tableContent) {
       // Create a temporary div element to hold the table content
@@ -2151,6 +2151,7 @@ function DisplayFiberPath(HHname){
     })
   //HHlayer[i].options.color = 'red'
     }
+    SGConnected = []
     let content =''
     content = `<strong>Fiber from HH to PS</strong><br><br>`
     
@@ -2211,7 +2212,11 @@ function DisplayFiberPath(HHname){
         let firstDashIndex = nameOfHH.indexOf('-');
         let secondDashIndex = nameOfHH.indexOf('-', firstDashIndex + 1);
         let result = nameOfHH.substring(firstDashIndex + 1, secondDashIndex);
-  
+        if(parseInt(result) != NaN){
+          if(!SGConnected.includes(parseInt(result))){
+            SGConnected.push(parseInt(result))
+          }
+        }
         let fiberColor = getFiberColor(parseInt(arr[len][0]))
         let temp = [Incable,fIn,fiberColor.backgroundColor]
         content +=`<tr><td style="text-align: center; padding: 5px;">${index}</td>`
@@ -2381,6 +2386,12 @@ function DisplayFiberPath(HHname){
   if(psPress == true){
     container.style.display = 'block'
     fiberPath = getConnectedPS(HHname)
+    SGConnected.sort((a, b) => {
+      if (isNaN(a)) return 1;
+      if (isNaN(b)) return -1;
+      return a - b;
+    });
+    console.log('SGConnected: ', SGConnected)
     psPress = false
   }
   content.innerHTML = fiberPath;
