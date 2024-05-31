@@ -1387,7 +1387,7 @@ function AddHHintoMap(){
     <div class="custom-popup">
         <div id="page1">
             <h2><strong>${name} : </strong> Splicing Information (simplified)</h2>
-            <strong>${new_name}</strong><br>
+            <strong>${new_name} (${name})</strong><br>
             ${labelDesc.join('')}
             ${arrKeys.join('<br>')}<br> 
             ${new_desc.join('<br>')}<br>
