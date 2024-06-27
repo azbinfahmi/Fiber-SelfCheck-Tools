@@ -11,9 +11,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
 </head>
-<body>  
+<body>
     <table id="fiberTable" class="fiberTable">
         <tr>
+            
             <td>
                 <label for="zipFileInput">Splicing File (zip file):</label><br>
                 <input type="file" id="zipFileInput_before" accept=".zip" onchange="handleZipFile_before()">
@@ -26,8 +27,14 @@
             <td>
                 <p> <a href="../index.html"> Fiber Self Check tools</a></p>
             </td>
+            
             <td>
-                <img id="toggleTableBtn-Left" src="../img/left.png" alt="Toggle Table">
+                <img id="toggleTableBtn-Left" src="../img/left.png" alt="Toggle Table" style="cursor: pointer;">
+            </td>
+            <td>
+                <a href="../Donate/donateMe.html" target="_blank">
+                    <img id="donateButton" src="../img/donation.png" alt="Donate">
+                </a>
             </td>
         </tr>
     </table>

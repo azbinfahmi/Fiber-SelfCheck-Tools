@@ -853,9 +853,10 @@ function AddHHintoMap(){
     }
     let namecableCapac = arr[0][2].split('_#')
     let namecable = `${namecableCapac[0]}`
-    if(arr[0][5] > 1){
-      namecable = `${namecableCapac[1]}F ${namecableCapac[0]}`
-    }
+    // if(arr[0][5] > 1){
+    //   namecable = `${namecableCapac[1]}F ${namecableCapac[0]}`
+    // }
+    namecable = `${namecableCapac[1]}F ${namecableCapac[0]}`
     arr[0][2] = namecable
 
     for (let i = 1; i < arr.length; i++) {
@@ -866,21 +867,23 @@ function AddHHintoMap(){
       } else {
           if (start === end) {
               let totalValue = end - start + 1
-              if(arr[i][4] > 1){
-                result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-              }
-              else{
-                result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-              }
+              result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+              // if(arr[i][4] > 1){
+              //   result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+              // }
+              // else{
+              //   result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+              // }
             } 
             else {
               let totalValue = end - start + 1
-              if(arr[i][4] > 1){
-                result.push(`In ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-              }
-              else{
-                result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-              }
+              result.push(`In ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+              // if(arr[i][4] > 1){
+              //   result.push(`In ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+              // }
+              // else{
+              //   result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+              // }
             }
           start = current;
           end = current;
@@ -890,21 +893,23 @@ function AddHHintoMap(){
     // Add the last range
     if (start === end) {
         let totalValue = end - start + 1
-        if(arr[0][4] > 1){
-          result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-        }
-        else{
-          result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-        }
+        result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+        // if(arr[0][4] > 1){
+        //   result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+        // }
+        // else{
+        //   result.push(`In (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+        // }
 
       } else {
         let totalValue = end - start + 1
-        if(arr[0][4] > 1){
-          result.push(`In ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-        }
-        else{
-          result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
-        }
+        result.push(`In ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+        // if(arr[0][4] > 1){
+        //   result.push(`In ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+        // }
+        // else{
+        //   result.push(`In (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+        // }
     }
     return result;
   }
@@ -1178,35 +1183,38 @@ function AddHHintoMap(){
             let direction = findDirection(name,arr[i][2])
             let directionOut = direction[0]
             let countOut = direction[1]
-            if(countName > 1){
-              if(countIn > 1 && countOut> 1){
-                labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
-              }
-              else if(countIn > 1){
-                labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
-              }
-              else if(countOut > 1){
-                labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)
-              }
-              else{
-                labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)    
-              }
-            }
-            else{
-              if(countIn > 1 && countOut> 1){
-                labelDesc.push(`In ${foc_out} (${arr[i][1]}) ${directionOut} Out ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
-              }
-              else if(countIn > 1){
-                labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
-              }
-              else if(countOut > 1){
-                labelDesc.push(`In ${foc_out} (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)
-              }
-              else{
-                labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)    
-              }
-            }
-                       
+            // if(countName > 1){
+            //   labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
+            //   if(countIn > 1 && countOut> 1){
+            //     labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
+            //   }
+            //   else if(countIn > 1){
+            //     labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
+            //   }
+            //   else if(countOut > 1){
+            //     labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)
+            //   }
+            //   else{
+            //     labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)    
+            //   }
+            // }
+            // else{
+            //   labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
+            //   if(countIn > 1 && countOut> 1){
+            //     labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
+            //   }
+            //   else if(countIn > 1){
+            //     labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
+            //   }
+            //   else if(countOut > 1){
+            //     labelDesc.push(`In ${foc_out} (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)
+            //   }
+            //   else{
+            //     labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)    
+            //   }
+            // }
+            labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
+      
           }
         }
       }
@@ -1260,15 +1268,18 @@ function AddHHintoMap(){
               let countOut = direction[1]
               let cablewithCapac = extractFOC(arr[3]).split('_#')
               let foc_out = `${cablewithCapac[0]}`
-              if(countName>1){
-                foc_out = `${cablewithCapac[1]}F ${cablewithCapac[0]}`
-              }
-              if(countOut> 1){
-                new_desc.push(`In (Port ${PortRange}) Out ${foc_out} (${arr[2]}) ${directionOut}`)
-              }
-              else{
-                new_desc.push(`In (Port ${PortRange}) Out (${arr[2]}) ${directionOut}`)
-              }
+              // if(countName>1){
+              //   foc_out = `${cablewithCapac[1]}F ${cablewithCapac[0]}`
+              // }
+              foc_out = `${cablewithCapac[1]}F ${cablewithCapac[0]}`
+
+              // if(countOut> 1){
+              //   new_desc.push(`In (Port ${PortRange}) Out ${foc_out} (${arr[2]}) ${directionOut}`)
+              // }
+              // else{
+              //   new_desc.push(`In (Port ${PortRange}) Out (${arr[2]}) ${directionOut}`)
+              // }
+              new_desc.push(`In (Port ${PortRange}) Out ${foc_out} (${arr[2]}) ${directionOut}`)
             }
           }       
         }
@@ -1383,11 +1394,16 @@ function AddHHintoMap(){
     // console.log('labelDesc: ',labelDesc)//ni cable splicing
     // console.log('arrKeys: ',arrKeys)//ni cable yang masuk ke eq
     // console.log('new_desc: ',new_desc)//ni port
+    let latestName = `${new_name}`
+    if(name.includes('HH-')){
+      latestName = `${new_name} (${name})`
+      console.log('azim')
+    }
     let popupContent = `
     <div class="custom-popup">
         <div id="page1">
             <h2><strong>${name} : </strong> Splicing Information (simplified)</h2>
-            <strong>${new_name} (${name})</strong><br>
+            <strong> ${latestName} </strong><br>
             ${labelDesc.join('')}
             ${arrKeys.join('<br>')}<br> 
             ${new_desc.join('<br>')}<br>

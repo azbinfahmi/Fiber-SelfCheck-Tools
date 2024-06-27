@@ -6,11 +6,11 @@ var map = L.map('map', {
 }).setView([0, 0], 2);
 
 var darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '© Develop by AzbinFahmi',
+    attribution: '<span style="font-size: 16px;">© Develop by AzbinFahmi</span>',
     maxZoom: 99
 });
 var lightLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© Develop by AzbinFahmi',
+    attribution: '<span style="font-size: 16px;">© Develop by AzbinFahmi</span>',
     maxZoom: 99
 });
 // Add the light layer by default

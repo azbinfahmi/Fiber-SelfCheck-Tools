@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donate</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Center the QR code on the page */
+        .qr-container {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center; /* Optional, for centering text */
+            color: white;
+        }
+        .qr-container img {
+            max-width: 600px; /* Adjust size as needed */
+            max-height: 600px; /* Adjust size as needed */
+        }
+    </style>
+</head>
+<body style="overflow-y: hidden;">
+    <div class="qr-container">
+        <h1>Support Our Tools</h1>
+        <p>Your support helps us continue our work. Thank you!</p>
+        <p>Scan the QR code below to donate via DuitNow:</p>
+        <img src="../img/cimbQR-Photoroom.png" alt="Scan to Donate">
+        
+    </div>
+    <div id="three-container"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src='https://jeromeetienne.github.io/threex.terrain/examples/vendor/three.js/build/three-min.js'></script>
+    <script src='https://jeromeetienne.github.io/threex.terrain/examples/vendor/three.js/examples/js/SimplexNoise.js'></script>
+    <script src='https://jeromeetienne.github.io/threex.terrain/threex.terrain.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/23.1.2/tween.amd.js"></script>
+    <script src="donate.js"></script>
+
+</body>
+</html>
