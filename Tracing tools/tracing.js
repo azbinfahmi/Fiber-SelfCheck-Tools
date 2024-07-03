@@ -20,6 +20,41 @@ function itemExists(item, legendItems) {
   return false;
 }
 
+function copyToClipboard() {
+  // Get the elements by their IDs
+  const latestNameElement = document.querySelector('#page1 strong');
+  const contentToCopyElement = document.getElementById('contentToCopy');
+
+  // Check if elements exist
+  if (latestNameElement && contentToCopyElement) {
+      // Get the text content of these elements
+      const latestNameText = latestNameElement.innerText.trim();
+      const contentToCopyText = contentToCopyElement.innerText.trim();
+
+      // Combine the text content
+      const combinedText = `${latestNameText}\n${contentToCopyText}`;
+
+      // Create a temporary textarea element to perform the copy operation
+      const tempTextArea = document.createElement('textarea');
+      tempTextArea.value = combinedText;
+      document.body.appendChild(tempTextArea);
+
+      // Select the text in the textarea and copy it
+      tempTextArea.select();
+      document.execCommand('copy');
+
+      // Clean up - remove the temporary textarea
+      document.body.removeChild(tempTextArea);
+      const copyMessage = document.getElementById('copyMessage');
+      copyMessage.style.display = 'block';
+      setTimeout(function() {
+        copyMessage.style.display = 'none';
+    }, 2000); // 2000 milliseconds = 2 seconds
+  } else {
+      console.error('Elements not found');
+  }
+}
+
 function handleZipFile_before() {
     function cleanFileName(fileName) {
       const prefixToRemove = 'Splice_Report_';
@@ -309,7 +344,6 @@ function StoreSplicingInfo(){
           return parts[parts.length - 1];
       }
     }
-
     //store splicing dari excel
     let cableInfo ={}, checkHHname =[], nameHH = 1
     for (let key in workbook_arr) {
@@ -846,10 +880,10 @@ function AddHHintoMap(){
     let end = start;
     let sameValue = arr[0][1];
     if(sameValue == 'DTS'){
-      newValue = 'Secondary Splitter'
+      newValue = '1x4 Secondary Splitters'
     }
     else{
-      newValue = 'Primary Splitter'
+      newValue = '1x8 Primary Splitters'
     }
     let namecableCapac = arr[0][2].split('_#')
     let namecable = `${namecableCapac[0]}`
@@ -867,7 +901,7 @@ function AddHHintoMap(){
       } else {
           if (start === end) {
               let totalValue = end - start + 1
-              result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+              result.push(`In: ${arr[0][2]} (${start.toString()}) ${arr[0][3]}<br>Out: (${totalValue}) ${newValue}`)
               // if(arr[i][4] > 1){
               //   result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
               // }
@@ -877,7 +911,7 @@ function AddHHintoMap(){
             } 
             else {
               let totalValue = end - start + 1
-              result.push(`In ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+              result.push(`In: ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]}<br>Out: (${totalValue}) ${newValue}`)
               // if(arr[i][4] > 1){
               //   result.push(`In ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
               // }
@@ -893,7 +927,7 @@ function AddHHintoMap(){
     // Add the last range
     if (start === end) {
         let totalValue = end - start + 1
-        result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+        result.push(`In: ${arr[0][2]} (${start.toString()}) ${arr[0][3]} <br>Out: (${totalValue}) ${newValue}`)
         // if(arr[0][4] > 1){
         //   result.push(`In ${arr[0][2]} (${start.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
         // }
@@ -903,7 +937,7 @@ function AddHHintoMap(){
 
       } else {
         let totalValue = end - start + 1
-        result.push(`In ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
+        result.push(`In: ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} <br>Out: (${totalValue}) ${newValue}`)
         // if(arr[0][4] > 1){
         //   result.push(`In ${arr[0][2]} (${start.toString()}-${end.toString()}) ${arr[0][3]} Out ${totalValue} ${newValue}`)
         // }
@@ -1213,7 +1247,7 @@ function AddHHintoMap(){
             //     labelDesc.push(`In (${arr[i][1]}) ${directionOut} Out (${arr[i][0]}) ${directionIn}<br>`)    
             //   }
             // }
-            labelDesc.push(`In ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} Out ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br>`)
+            labelDesc.push(`In: ${focOutCapac} ${foc_out} (${arr[i][1]}) ${directionOut} <br>Out: ${focInCapac} ${foc_in} (${arr[i][0]}) ${directionIn}<br><br>`)
       
           }
         }
@@ -1261,7 +1295,7 @@ function AddHHintoMap(){
             }
             let direction = findDirection(name,arr[3])              
             if(direction == undefined){
-              new_desc.push(`In (Port ${PortRange}) Out 1 Secondary Splitter`)
+              new_desc.push(`In: (PS Port ${PortRange}) <br>Out: (1) 1x4 Secondary Splitter`)
             }
             else{
               let directionOut = direction[0]
@@ -1279,7 +1313,7 @@ function AddHHintoMap(){
               // else{
               //   new_desc.push(`In (Port ${PortRange}) Out (${arr[2]}) ${directionOut}`)
               // }
-              new_desc.push(`In (Port ${PortRange}) Out ${foc_out} (${arr[2]}) ${directionOut}`)
+              new_desc.push(`In: (PS Port ${PortRange}) <br>Out: ${foc_out} (${arr[2]}) ${directionOut}`)
             }
           }       
         }
@@ -1397,16 +1431,19 @@ function AddHHintoMap(){
     let latestName = `${new_name}`
     if(name.includes('HH-')){
       latestName = `${new_name} (${name})`
-      console.log('azim')
     }
     let popupContent = `
     <div class="custom-popup">
+        <div id="copyMessage" style="display: none; color: green;">Text Copied!</div>
         <div id="page1">
             <h2><strong>${name} : </strong> Splicing Information (simplified)</h2>
+            <img src="../img/clipboard.png" alt="" onclick="copyToClipboard()" style="cursor: pointer; width: 20px; height: 20px; "><br>
             <strong> ${latestName} </strong><br>
-            ${labelDesc.join('')}
-            ${arrKeys.join('<br>')}<br> 
-            ${new_desc.join('<br>')}<br>
+            <div id="contentToCopy">
+              ${labelDesc.join('')}
+              ${arrKeys.join('<br>')}<br><br>
+              ${new_desc.join('<br>')}<br>
+            </div>
         </div>
 
         <div id="page2" style="display: none;">
@@ -1429,7 +1466,7 @@ function AddHHintoMap(){
       <style>
           .custom-popup {
               max-height: 200px;
-              max-width: 300px;
+              max-width: max-content;
               overflow-y: auto;
           }
       </style>
